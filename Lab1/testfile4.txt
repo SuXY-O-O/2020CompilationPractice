@@ -1,0 +1,44 @@
+int AddOne ( int a ) 
+ { 
+    return(a + 1);
+ } 
+
+int AddTwo ( int a, int b ) 
+ { 
+    return(a + b);
+ } 
+
+char ReturnA (  ) 
+ { 
+    return('A');
+ } 
+
+void ReturnNone (  ) 
+ { 
+    return;
+ } 
+
+void ReturnNone2 (  ) 
+ { 
+    int t;
+ } 
+
+void main() 
+{ 
+    int a = 1;
+    int b = 2;
+    printf("18373187");
+    printf(a);
+    printf(b);
+    b = AddOne(b);
+    printf(b);
+    ReturnA();
+    ReturnNone();
+    a = AddTwo(a, b);
+    printf(a);
+    printf(a);
+    printf(a);
+    printf(a);
+    printf(a);
+    printf(a);
+} 

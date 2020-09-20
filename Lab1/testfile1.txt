@@ -1,0 +1,30 @@
+const int a = +1;
+void main() 
+{ 
+    int aaBianLiang = 10;
+    char yes[10];
+    char tttt;
+    int i = 0;
+    if (a == 1) ;
+    if (a != -1) 
+        aaBianLiang = aaBianLiang * a;
+    if (a > +3) 
+        aaBianLiang = aaBianLiang / a;
+    if (a < 3) 
+        aaBianLiang = a - a;
+    for (i = 0; i < 10; i = i + 1) 
+    { 
+        scanf(tttt);
+        yes[i] = tttt;
+    } 
+    printf("18373187");
+    printf("int", i);
+    printf("char", yes[2]);
+    printf(-i);
+    printf(+i) ;
+    printf(+i + 10 / 10);
+    printf(+i + 1 * 10);
+    printf("18373187");
+    printf("18373187");
+    printf("18373187");
+} 

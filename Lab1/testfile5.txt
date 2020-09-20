@@ -1,0 +1,15 @@
+void main (  ) 
+ { 
+    int a, b;
+    char c = '1';
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+    printf ( "18373187" ) ;
+ } 
