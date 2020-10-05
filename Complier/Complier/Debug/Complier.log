@@ -1,3 +1,186 @@
-﻿  Lexer.cpp
-C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Lexer.cpp(388,16): warning C4018: “<”: 有符号/无符号不匹配
-  Complier.vcxproj -> C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Debug\Complier.exe
+﻿  main.cpp
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Tables.h(29,2): warning C4091: “static ”: 没有声明变量时忽略“FunctionTable”的左侧
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(183,22): error C3646: “table”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(183,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(184,20): error C3646: “fu_he”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(184,20): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(203,23): error C3646: “yu_ju_lie”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(203,23): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(256,9): error C2065: “Item”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(256,2): error C2923: “std::vector”: 对于参数“_Ty”，“Item”不是有效的 模板 类型变量
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(256,2): error C2976: “std::vector”: 模板 参数太少
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(413): message : 参见“std::vector”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(272,9): error C2065: “Factor”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(272,2): error C2923: “std::vector”: 对于参数“_Ty”，“Factor”不是有效的 模板 类型变量
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(272,2): error C2976: “std::vector”: 模板 参数太少
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(413): message : 参见“std::vector”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(298,28): error C3646: “diao_yong”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(298,28): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(315,26): error C3646: “xun_huan”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(315,26): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(316,28): error C3646: “tiao_jian”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(316,28): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(317,28): error C3646: “diao_yong”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(317,28): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(318,22): error C3646: “fu_zhi”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(318,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(319,19): error C3646: “read”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(319,19): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(320,21): error C3646: “print”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(320,21): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(321,24): error C3646: “fan_hui”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(321,24): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(322,30): error C3646: “qing_kuang”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(322,30): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(323,23): error C3646: “yu_ju_lie”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(323,23): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(360,20): error C3646: “tiao_jian”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(360,20): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(407,18): error C3646: “bu_chang”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(407,18): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(439,22): error C3646: “table”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(439,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(440,22): error C3646: “def”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(440,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(455,9): error C2065: “ConditionCase”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(455,2): error C2923: “std::vector”: 对于参数“_Ty”，“ConditionCase”不是有效的 模板 类型变量
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(455,2): error C2976: “std::vector”: 模板 参数太少
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(413): message : 参见“std::vector”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(509,22): error C3646: “paras”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(509,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+  Grammar.cpp
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Tables.h(29,2): warning C4091: “static ”: 没有声明变量时忽略“FunctionTable”的左侧
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(183,22): error C3646: “table”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(183,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(184,20): error C3646: “fu_he”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(184,20): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(203,23): error C3646: “yu_ju_lie”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(203,23): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(256,9): error C2065: “Item”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(256,2): error C2923: “std::vector”: 对于参数“_Ty”，“Item”不是有效的 模板 类型变量
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(256,2): error C2976: “std::vector”: 模板 参数太少
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(413): message : 参见“std::vector”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(272,9): error C2065: “Factor”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(272,2): error C2923: “std::vector”: 对于参数“_Ty”，“Factor”不是有效的 模板 类型变量
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(272,2): error C2976: “std::vector”: 模板 参数太少
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(413): message : 参见“std::vector”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(298,28): error C3646: “diao_yong”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(298,28): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(315,26): error C3646: “xun_huan”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(315,26): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(316,28): error C3646: “tiao_jian”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(316,28): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(317,28): error C3646: “diao_yong”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(317,28): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(318,22): error C3646: “fu_zhi”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(318,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(319,19): error C3646: “read”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(319,19): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(320,21): error C3646: “print”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(320,21): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(321,24): error C3646: “fan_hui”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(321,24): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(322,30): error C3646: “qing_kuang”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(322,30): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(323,23): error C3646: “yu_ju_lie”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(323,23): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(360,20): error C3646: “tiao_jian”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(360,20): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(407,18): error C3646: “bu_chang”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(407,18): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(439,22): error C3646: “table”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(439,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(440,22): error C3646: “def”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(440,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(455,9): error C2065: “ConditionCase”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(455,2): error C2923: “std::vector”: 对于参数“_Ty”，“ConditionCase”不是有效的 模板 类型变量
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(455,2): error C2976: “std::vector”: 模板 参数太少
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(413): message : 参见“std::vector”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(509,22): error C3646: “paras”: 未知重写说明符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.h(509,22): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(154,17): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(168,17): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(221,16): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(467,16): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(485,16): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(534,16): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(674,16): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(700,20): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(736,20): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(739,9): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(760,10): error C2065: “paras”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(776,16): error C2065: “paras”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(847,8): error C2663: “std::vector<_Ty,_Alloc>::push_back”: 2 个重载没有“this”指针的合法转换
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(850,5): error C2662: “allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type std::vector<_Ty,_Alloc>::size(void) noexcept const”: 不能将“this”指针从“std::vector”转换为“const std::vector<_Ty,_Alloc> &”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(850,5): message : 原因如下: 无法从“std::vector”转换为“const std::vector<_Ty,_Alloc>”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(850,6): message : 转换要求第二个用户定义的转换运算符或构造函数
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1482,26): message : 参见“std::vector<_Ty,_Alloc>::size”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(859,33): error C2662: “allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type std::vector<_Ty,_Alloc>::size(void) noexcept const”: 不能将“this”指针从“std::vector”转换为“const std::vector<_Ty,_Alloc> &”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(859,33): message : 原因如下: 无法从“std::vector”转换为“const std::vector<_Ty,_Alloc>”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(859,22): message : 转换要求第二个用户定义的转换运算符或构造函数
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1482,26): message : 参见“std::vector<_Ty,_Alloc>::size”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(861,24): error C2678: 二进制“[”: 没有找到接受“std::vector”类型的左操作数的运算符(或没有可接受的转换)
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1507,27): message : 可能是“const _Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept const”
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1497,21): message : 或    “_Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(861,24): message : 尝试匹配参数列表“(std::vector, int)”时
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(889,6): error C2065: “table”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(892,6): error C2065: “def”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(911,16): error C2065: “table”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(912,16): error C2065: “def”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(996,7): error C2065: “bu_chang”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1037,17): error C2065: “bu_chang”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1083,10): error C2065: “tiao_jian”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1111,16): error C2065: “tiao_jian”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1170,20): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1198,8): error C2065: “xun_huan”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1204,8): error C2065: “tiao_jian”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1215,9): error C2065: “diao_yong”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1223,9): error C2065: “fu_zhi”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1233,8): error C2065: “read”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1242,8): error C2065: “print”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1251,8): error C2065: “fan_hui”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1260,8): error C2065: “qing_kuang”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1267,8): error C2065: “yu_ju_lie”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1290,18): error C2065: “xun_huan”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1293,18): error C2065: “tiao_jian”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1296,18): error C2065: “diao_yong”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1300,18): error C2065: “fu_zhi”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1304,18): error C2065: “read”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1308,18): error C2065: “print”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1312,18): error C2065: “fan_hui”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1316,18): error C2065: “qing_kuang”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1320,18): error C2065: “yu_ju_lie”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1372,9): error C2065: “diao_yong”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1420,18): error C2065: “diao_yong”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1424,22): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1449,9): error C2663: “std::vector<_Ty,_Alloc>::push_back”: 2 个重载没有“this”指针的合法转换
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1458,10): error C2663: “std::vector<_Ty,_Alloc>::push_back”: 2 个重载没有“this”指针的合法转换
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1468,35): error C2662: “allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type std::vector<_Ty,_Alloc>::size(void) noexcept const”: 不能将“this”指针从“std::vector”转换为“const std::vector<_Ty,_Alloc> &”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1468,35): message : 原因如下: 无法从“std::vector”转换为“const std::vector<_Ty,_Alloc>”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1468,22): message : 转换要求第二个用户定义的转换运算符或构造函数
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1482,26): message : 参见“std::vector<_Ty,_Alloc>::size”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1470,26): error C2678: 二进制“[”: 没有找到接受“std::vector”类型的左操作数的运算符(或没有可接受的转换)
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1507,27): message : 可能是“const _Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept const”
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1497,21): message : 或    “_Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1470,26): message : 尝试匹配参数列表“(std::vector, int)”时
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1471,9): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1492,7): error C2663: “std::vector<_Ty,_Alloc>::push_back”: 2 个重载没有“this”指针的合法转换
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1501,8): error C2663: “std::vector<_Ty,_Alloc>::push_back”: 2 个重载没有“this”指针的合法转换
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1518,39): error C2662: “allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type std::vector<_Ty,_Alloc>::size(void) noexcept const”: 不能将“this”指针从“std::vector”转换为“const std::vector<_Ty,_Alloc> &”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1518,39): message : 原因如下: 无法从“std::vector”转换为“const std::vector<_Ty,_Alloc>”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1518,28): message : 转换要求第二个用户定义的转换运算符或构造函数
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1482,26): message : 参见“std::vector<_Ty,_Alloc>::size”的声明
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1520,29): error C2678: 二进制“[”: 没有找到接受“std::vector”类型的左操作数的运算符(或没有可接受的转换)
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1507,27): message : 可能是“const _Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept const”
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include\vector(1497,21): message : 或    “_Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept”
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1520,29): message : 尝试匹配参数列表“(std::vector, int)”时
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1521,14): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1597,20): warning C4018: “<”: 有符号/无符号不匹配
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1625,6): error C2065: “yu_ju_lie”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1639,16): error C2065: “yu_ju_lie”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1669,10): error C2065: “table”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1678,6): error C2065: “fu_he”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1701,16): error C2065: “table”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1704,16): error C2065: “fu_he”: 未声明的标识符
+C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Complier\Grammar.cpp(1770,20): warning C4018: “<”: 有符号/无符号不匹配
+  正在生成代码...

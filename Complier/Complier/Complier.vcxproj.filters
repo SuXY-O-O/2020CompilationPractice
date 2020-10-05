@@ -24,6 +24,12 @@
     <ClInclude Include="Lexer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Grammar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Tables.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WordInfo.cpp">
@@ -33,6 +39,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Grammar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Tables.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -141,13 +141,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Lexer.h" />
+    <ClInclude Include="Tables.h" />
     <ClInclude Include="TypeEnum.h" />
     <ClInclude Include="WordInfo.h" />
+    <ClInclude Include="Grammar.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Lexer.cpp" />
+    <ClCompile Include="Tables.cpp" />
     <ClCompile Include="WordInfo.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Grammar.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

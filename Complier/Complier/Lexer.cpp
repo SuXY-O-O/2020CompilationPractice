@@ -1,4 +1,4 @@
-#include <ctype.h>
+﻿#include <ctype.h>
 #include <iostream>
 #include "Lexer.h"
 #include "WordInfo.h"
@@ -366,12 +366,24 @@ void Lexer::process_input(string in_file_name)
 
 WordInfo Lexer::get_next()
 {
-	return word_list[word_pos++];
+	int for_return = word_pos;
+	word_pos++;
+	return word_list[for_return];
 }
 
-WordInfo Lexer::get_index(int index)
+WordInfo Lexer::peek_next()
+{
+	return word_list[word_pos];
+}
+
+WordInfo Lexer::get_by_pos(int index)
 {
 	return word_list[index];
+}
+
+int Lexer::get_pos()
+{
+	return word_pos;
 }
 
 void Lexer::set_pos(int pos)
@@ -387,7 +399,7 @@ void Lexer::print_to_file(string out_file_name)
 	//out << "begin" << word_list.size() << "\n";
 	for (i = 0; i < word_list.size(); i++)
 	{
-		out << word_list[i].to_string() << endl;
+		out << word_list[i].to_string();
 	}
 	out.close();
 }

@@ -1,4 +1,4 @@
-#include "WordInfo.h"
+﻿#include "WordInfo.h"
 #include "TypeEnum.h"
 
 void WordInfo::set_string(string in)
@@ -151,5 +151,5 @@ string WordInfo::type_to_string(TypeEnum t)
 
 string WordInfo::to_string()
 {
-	return type_to_string(this->type) + " " + this->input;
+	return type_to_string(this->type) + " " + this->input + "\n";
 }

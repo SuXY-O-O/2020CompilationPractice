@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<string>
 #include "TypeEnum.h"
 using namespace std;
@@ -7,9 +7,10 @@ class WordInfo
 private:
 	TypeEnum type;
 	string input;
-	int line;
-	int count;
+	int line = 0;
+	int count = 0;
 public:
+	WordInfo():type(TypeEnum::EMPTY){}
 	WordInfo(TypeEnum t, int l, int c)
 	{
 		this->count = c;

@@ -1,4 +1,5 @@
-#include "Lexer.h"
+﻿#include "Lexer.h"
+#include "Grammar.h"
 #include <iostream>
 
 const string in_file_name = "testfile.txt";
@@ -8,5 +9,8 @@ int main()
 {
 	Lexer lexer;
 	lexer.process_input(in_file_name);
-	lexer.print_to_file(out_file_name);
+	//lexer.print_to_file(out_file_name);
+	Grammar grammar;
+	grammar.read_in(lexer);
+	grammar.print_to_file(out_file_name);
 }

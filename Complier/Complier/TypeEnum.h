@@ -1,8 +1,10 @@
-#pragma once
+ï»¿#pragma once
 #include<string>
 enum class TypeEnum
 {
-	//±êÊ¶·û	
+	//ç©º
+	EMPTY,
+	//æ ‡è¯†ç¬¦	
 	IDENFR,
 	//else	
 	ELSETK,
@@ -10,7 +12,7 @@ enum class TypeEnum
 	MINU,
 	// =
 	ASSIGN,
-	//ÕûĞÎ³£Á¿
+	//æ•´å½¢å¸¸é‡
 	INTCON,
 	//switch
 	SWITCHTK,
@@ -18,7 +20,7 @@ enum class TypeEnum
 	MULT,
 	// ;
 	SEMICN,
-	//×Ö·û³£Á¿	
+	//å­—ç¬¦å¸¸é‡	
 	CHARCON,
 	//	case	
 	CASETK,
@@ -26,7 +28,7 @@ enum class TypeEnum
 	DIV,
 	// ,
 	COMMA,
-	//×Ö·û´®	
+	//å­—ç¬¦ä¸²	
 	STRCON,
 	//default	
 	DEFAULTTK,
@@ -78,7 +80,7 @@ enum class TypeEnum
 	IFTK,
 	// + 
 	PLUS,
-	// £º	
+	// ï¼š	
 	COLON
 };
 
