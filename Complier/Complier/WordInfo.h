@@ -1,7 +1,10 @@
 ﻿#pragma once
-#include<string>
+
 #include "TypeEnum.h"
+#include<string>
+
 using namespace std;
+
 class WordInfo
 {
 private:

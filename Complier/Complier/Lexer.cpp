@@ -1,8 +1,8 @@
-﻿#include <ctype.h>
-#include <iostream>
+﻿//#include <ctype.h>
 #include "Lexer.h"
-#include "WordInfo.h"
-#include "TypeEnum.h"
+//#include "WordInfo.h"
+//#include "TypeEnum.h"
+#include <iostream>
 
 void Lexer::process_input(string in_file_name)
 {

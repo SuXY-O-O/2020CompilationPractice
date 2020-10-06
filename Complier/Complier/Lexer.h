@@ -1,8 +1,11 @@
 ﻿#pragma once
+
+#include"WordInfo.h"
 #include<vector>
 #include<fstream>
-#include"WordInfo.h"
+
 using namespace std;
+
 class Lexer
 {
 private :

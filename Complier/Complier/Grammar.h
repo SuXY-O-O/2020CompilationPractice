@@ -1,14 +1,50 @@
 ﻿#pragma once
-#include"WordInfo.h"
+//#include"WordInfo.h"
 #include"Lexer.h"
 #include"Tables.h"
+
+//
+class BuChang;
+class ChangLiang;
+class ConditionCase;
+class ConditionDefault;
+class ConditionTable;
+class ConstDingYi;
+class ConstShuoMing;
+class Expression;
+class Factor;
+class FunctionDingYi;
+class FunctionMain;
+class Grammar;
+class Item;
+class ParameterTable;
+class ParameterValue;
+class Sentence;
+class SentenceDiaoYong;
+class SentenceFuHe;
+class SentenceFuZhi;
+class SentenceLie;
+class SentencePrint;
+class SentenceQingKuang;
+class SentenceRead;
+class SentenceReturn;
+class SentenceTiaoJian;
+class SentenceXunHuan;
+class ShengMingHead;
+class TiaoJian;
+class VariableDingYi;
+class VariableShuoMing;
+class WuFuHaoShu;
+class ZhengShu;
+class ZiFuChuan;
+//
 
 // <字符串> ::= "{十进制编码为32,33,35-126的ASCII字符}"
 class ZiFuChuan
 {
 private:
 	WordInfo zi_fu_chuan;
-	int word_pos;
+	int word_pos = 0;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -166,22 +202,71 @@ public:
 	string to_string();
 };
 
-// <有返回值函数定义>  ::=  <声明头部>'('<参数表>')' '{'<复合语句>'}'
-// <无返回值函数定义>  ::= void<标识符>'('<参数表>')''{'<复合语句>'}' 
-class FunctionDingYi
+// <因子> ::= <标识符> | <标识符>'['<表达式>']' | <标识符>'['<表达式>']''['<表达式>']'
+// | '('<表达式>')' | <整数> | <字符> | <有返回值函数调用语句>
+class Factor
 {
 private:
 	int word_pos = 0;
-	bool have_return = false;
-	ShengMingHead head;
-	WordInfo void_tk;
-	WordInfo id;
-	WordInfo lparent;
-	WordInfo rparent;
-	WordInfo lbrace;
-	WordInfo rbrace;
-	ParameterTable table;
-	SentenceFuHe fu_he;
+	int type = 0;
+	//1, <标识符> | <标识符>'['<表达式>']' | <标识符>'['<表达式>']''['<表达式>']' | '('<表达式>')' 
+	vector<WordInfo> ids;
+	vector<Expression> exps;
+	//2, zheng shu
+	ZhengShu zheng_shu;
+	//3, zi fu
+	WordInfo zi_fu;
+	//4, diao yong
+	SentenceDiaoYong* diao_yong = NULL;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <项> ::= <因子>{<乘法运算符><因子>} 
+class Item
+{
+private:
+	int word_pos = 0;
+	vector<Factor> factors;
+	vector<WordInfo> signs;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <表达式> ::= [+|-]<项>{<加法运算符><项>} 
+class Expression
+{
+private:
+	int word_pos = 0;
+	bool have_pre_sign = false;
+	vector<Item> items;
+	vector<WordInfo> signs;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <参数表> ::= <类型标识符><标识符>{,<类型标识符><标识符>} | <空>
+class ParameterTable
+{
+private:
+	int word_pos = 0;
+	bool is_empty = true;
+	vector<WordInfo> items;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -200,7 +285,7 @@ private:
 	int type = 0;
 	ConstShuoMing consts;
 	VariableShuoMing vars;
-	SentenceLie yu_ju_lie;
+	SentenceLie* yu_ju_lie = NULL;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -210,13 +295,22 @@ public:
 	string to_string();
 };
 
-// <参数表> ::= <类型标识符><标识符>{,<类型标识符><标识符>} | <空>
-class ParameterTable
+// <有返回值函数定义>  ::=  <声明头部>'('<参数表>')' '{'<复合语句>'}'
+// <无返回值函数定义>  ::= void<标识符>'('<参数表>')''{'<复合语句>'}' 
+class FunctionDingYi
 {
 private:
 	int word_pos = 0;
-	bool is_empty = true;
-	vector<WordInfo> items;
+	bool have_return = false;
+	ShengMingHead head;
+	WordInfo void_tk;
+	WordInfo id;
+	WordInfo lparent;
+	WordInfo rparent;
+	WordInfo lbrace;
+	WordInfo rbrace;
+	ParameterTable table;
+	SentenceFuHe fu_he;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -247,92 +341,6 @@ public:
 	string to_string();
 };
 
-// <表达式> ::= [＋｜－]<项>{<加法运算符><项>} 
-class Expression
-{
-private:
-	int word_pos = 0;
-	bool have_pre_sign = false;
-	vector<Item> items;
-	vector<WordInfo> signs;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <项> ::= <因子>{<乘法运算符><因子>} 
-class Item
-{
-private:
-	int word_pos = 0;
-	vector<Factor> factors;
-	vector<WordInfo> signs;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <因子> ::= <标识符> | <标识符>'['<表达式>']' | <标识符>'['<表达式>']''['<表达式>']'
-// | '('<表达式>')' | <整数> | <字符> | <有返回值函数调用语句>
-class Factor
-{
-private:
-	int word_pos = 0;
-	int type = 0;
-	//1, <标识符> | <标识符>'['<表达式>']' | <标识符>'['<表达式>']''['<表达式>']' | '('<表达式>')' 
-	vector<WordInfo> ids;			
-	vector<Expression> exps;	
-	//2, zheng shu
-	ZhengShu zheng_shu;
-	//3, zi fu
-	WordInfo zi_fu;
-	//4, diao yong
-	SentenceDiaoYong diao_yong;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <语句> ::= <循环语句> | <条件语句> | <有返回值函数调用语句>; | <无返回值函数调用语句>; ｜ <赋值语句>; 
-// ｜ <读语句>; ｜ <写语句>; ｜ <情况语句> ｜ <空>; | <返回语句>; | '{'<语句列>'}' 
-class Sentence
-{
-private:
-	int word_pos = 0;
-	int type = 0;					//0, empty
-	SentenceXunHuan xun_huan;		//1, xun huan
-	SentenceTiaoJian tiao_jian;		//2, tiao jian
-	SentenceDiaoYong diao_yong;		//3, with & without return, diao yong
-	SentenceFuZhi fu_zhi;			//4, fu zhi
-	SentenceRead read;				//5, read
-	SentencePrint print;			//6, print
-	SentenceReturn fan_hui;			//7, fan hui
-	SentenceQingKuang qing_kuang;	//8, qing kuang(case)
-	SentenceLie yu_ju_lie;			//9, yu ju lie
-	WordInfo semicn;				//store ";"
-	WordInfo lbrace;				//store "{"
-	WordInfo rbrace;				//store "}"
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
 // <赋值语句> ::= <标识符>＝<表达式> | <标识符>'['<表达式>']'=<表达式> | <标识符>'['<表达式>']''['<表达式>']'=<表达式>
 class SentenceFuZhi
 {
@@ -340,26 +348,6 @@ private:
 	int word_pos = 0;
 	vector<WordInfo> items;
 	vector<Expression> exps;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
- 
-// <条件语句>::= if '('<条件>')'<语句>[else<语句>]
-class SentenceTiaoJian
-{
-private:
-	int word_pos = 0;
-	bool have_else = false;
-	//0:if	1:(	2:)	3:else
-	vector<WordInfo> items;
-	TiaoJian tiao_jian;
-	Sentence s_if;
-	Sentence s_else;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -386,25 +374,17 @@ public:
 	string to_string();
 };
 
-// <循环语句> ::= while'('<条件>')'<语句> | for'('<标识符>＝<表达式>;<条件>;<标识符>＝<标识符>(+|-)<步长>')'<语句>
-class SentenceXunHuan
+// <条件语句>::= if '('<条件>')'<语句>[else<语句>]
+class SentenceTiaoJian
 {
 private:
 	int word_pos = 0;
-	//0: none; 1: while; 2: for.
-	int type = 0;
-	Sentence sentence;
-	TiaoJian tiao_jian;
-	/*
-	* while: 
-	* 0-while	1-(	2-)
-	* for:
-	* 0-for		1-(			2-<标识符>	3-=		4-;		5-;		6-<标识符>	
-	* 7-=		8-<标识符>	9-(+|-)		10-)
-	*/
+	bool have_else = false;
+	//0:if	1:(	2:)	3:else
 	vector<WordInfo> items;
-	Expression expression;
-	BuChang bu_chang;
+	TiaoJian tiao_jian;
+	Sentence* s_if = NULL;
+	Sentence* s_else = NULL;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -420,6 +400,84 @@ class BuChang
 private:
 	int word_pos = 0;
 	WuFuHaoShu zheng_shu;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <循环语句> ::= while'('<条件>')'<语句> | for'('<标识符>＝<表达式>;<条件>;<标识符>＝<标识符>(+|-)<步长>')'<语句>
+class SentenceXunHuan
+{
+private:
+	int word_pos = 0;
+	//0: none; 1: while; 2: for.
+	int type = 0;
+	Sentence* sentence = NULL;
+	TiaoJian tiao_jian;
+	/*
+	* while:
+	* 0-while	1-(	2-)
+	* for:
+	* 0-for		1-(			2-<标识符>	3-=		4-;		5-;		6-<标识符>
+	* 7-=		8-<标识符>	9-(+|-)		10-)
+	*/
+	vector<WordInfo> items;
+	Expression expression;
+	BuChang bu_chang;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <情况子语句> ::= case<常量>:<语句>
+class ConditionCase
+{
+private:
+	int word_pos = 0;
+	WordInfo case_tk;
+	WordInfo colon;
+	ChangLiang chang_liang;
+	Sentence* sentence = NULL;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <缺省> ::= default:<语句>
+class ConditionDefault
+{
+private:
+	int word_pos = 0;
+	WordInfo default_tk;
+	WordInfo colon;
+	Sentence* sentence = NULL;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <情况表> ::= <情况子语句>{<情况子语句>}
+class ConditionTable
+{
+private:
+	int word_pos = 0;
+	vector<ConditionCase> cases;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -447,47 +505,13 @@ public:
 	string to_string();
 };
 
-// <情况表> ::= <情况子语句>{<情况子语句>}
-class ConditionTable
+// <值参数表> ::= <表达式>{,<表达式>}｜<空>
+class ParameterValue
 {
 private:
 	int word_pos = 0;
-	vector<ConditionCase> cases;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <情况子语句> ::= case<常量>:<语句>
-class ConditionCase
-{
-private:
-	int word_pos = 0;
-	WordInfo case_tk;
-	WordInfo colon;
-	ChangLiang chang_liang;
-	Sentence sentence;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <缺省> ::= default:<语句>
-class ConditionDefault
-{
-private:
-	int word_pos = 0;
-	WordInfo default_tk;
-	WordInfo colon;
-	Sentence sentence;
+	vector<Expression> expressions;
+	vector<WordInfo> commas;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -507,52 +531,6 @@ private:
 	int type = 0;
 	vector<WordInfo> items;
 	ParameterValue paras;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <值参数表> ::= <表达式>{,<表达式>}｜<空>
-class ParameterValue
-{
-private:
-	int word_pos = 0;
-	vector<Expression> expressions;
-	vector<WordInfo> commas;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <语句列> ::= {<语句>}
-class SentenceLie
-{
-private:
-	int word_pos = 0;
-	vector<Sentence> sentences;
-public:
-	int read_in(Lexer& lexer);
-	int get_word_pos()
-	{
-		return word_pos;
-	}
-	string to_string();
-};
-
-// <读语句> ::= scanf'('<标识符>')' 
-class SentenceRead
-{
-private:
-	int word_pos = 0;
-	vector<WordInfo> items;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -598,6 +576,65 @@ public:
 	}
 	string to_string();
 };
+
+// <读语句> ::= scanf'('<标识符>')' 
+class SentenceRead
+{
+private:
+	int word_pos = 0;
+	vector<WordInfo> items;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <语句> ::= <循环语句> | <条件语句> | <有返回值函数调用语句>; | <无返回值函数调用语句>; ｜ <赋值语句>; 
+// ｜ <读语句>; ｜ <写语句>; ｜ <情况语句> ｜ <空>; | <返回语句>; | '{'<语句列>'}' 
+class Sentence
+{
+private:
+	int word_pos = 0;
+	int type = 0;					//0, empty
+	SentenceXunHuan xun_huan;		//1, xun huan
+	SentenceTiaoJian tiao_jian;		//2, tiao jian
+	SentenceDiaoYong diao_yong;		//3, with & without return, diao yong
+	SentenceFuZhi fu_zhi;			//4, fu zhi
+	SentenceRead read;				//5, read
+	SentencePrint print;			//6, print
+	SentenceReturn fan_hui;			//7, fan hui
+	SentenceQingKuang qing_kuang;	//8, qing kuang(case)
+	SentenceLie* yu_ju_lie = NULL;	//9, yu ju lie
+	WordInfo semicn;				//store ";"
+	WordInfo lbrace;				//store "{"
+	WordInfo rbrace;				//store "}"
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
+// <语句列> ::= {<语句>}
+class SentenceLie
+{
+private:
+	int word_pos = 0;
+	vector<Sentence> sentences;
+public:
+	int read_in(Lexer& lexer);
+	int get_word_pos()
+	{
+		return word_pos;
+	}
+	string to_string();
+};
+
 
 //<程序> ::= [<常量说明>] [<变量说明>] {<有返回值函数定义>|<无返回值函数定义>} <主函数>
 class Grammar

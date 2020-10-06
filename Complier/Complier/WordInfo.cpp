@@ -1,5 +1,6 @@
 ﻿#include "WordInfo.h"
-#include "TypeEnum.h"
+//#include "TypeEnum.h"
+//#include<string>
 
 void WordInfo::set_string(string in)
 {

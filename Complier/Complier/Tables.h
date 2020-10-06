@@ -1,9 +1,11 @@
 ﻿#pragma once
-#include <map>
+
 #include "WordInfo.h"
+#include <map>
+
 using namespace std;
 
-static class FunctionTable
+class FunctionTable
 {
 private:
 	static map<string, int> name_to_return_type;	//0: void; 1: int; 2: char
@@ -24,6 +26,7 @@ public:
 		else
 		{
 			//TODO: cannot find the function
+			return false;
 		}
 	}
 };

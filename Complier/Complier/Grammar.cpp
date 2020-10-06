@@ -1,5 +1,5 @@
 ﻿#include "Grammar.h"
-#include "TypeEnum.h"
+//#include "TypeEnum.h"
 
 int ZiFuChuan::read_in(Lexer& lexer)
 {
@@ -238,7 +238,7 @@ int ShengMingHead::read_in(Lexer& lexer)
 		return word_pos + 1;
 	}
 	id = lexer.get_next();
-	if (type.get_type() != TypeEnum::IDENFR)
+	if (id.get_type() != TypeEnum::IDENFR)
 	{
 		lexer.set_pos(word_pos);
 		return word_pos + 2;
@@ -569,6 +569,10 @@ int SentenceReturn::read_in(Lexer& lexer)
 		items.push_back(tmp);
 		return -1;							//got a have return
 	}
+	else
+	{
+		return lexer.get_pos();
+	}
 }
 
 string SentenceReturn::to_string()
@@ -603,19 +607,30 @@ int SentencePrint::read_in(Lexer& lexer)
 		return lexer.get_pos();
 	}
 	items.push_back(tmp);
-	int r1, r2;
-	if ((r1 = zi_fu.read_in(lexer)) != -1)
-		lexer.set_pos(zi_fu.get_word_pos());		//read string failed and turn back the position
-	if ((r2 = expression.read_in(lexer)) != -1)
-		lexer.set_pos(expression.get_word_pos());	//read expression failed and turn back the position
-	if (r1 == -1 && r2 == -1)
-		type = 1;
-	else if (r1 == -1)
-		type = 2;
-	else if (r2 == -1)
+	tmp = lexer.peek_next();
+	int r = -1;
+	if (tmp.get_type() == TypeEnum::STRCON)
+	{
+		r = zi_fu.read_in(lexer);					//string; checked
+		tmp = lexer.peek_next();
+		if (tmp.get_type() == TypeEnum::COMMA)		//have expression
+		{
+			items.push_back(lexer.get_next());
+			r = expression.read_in(lexer);
+			if (r != -1)
+				return r;
+			type = 1;
+		}
+		else
+			type = 2;								//only zi fu
+	}
+	else
+	{
+		r = expression.read_in(lexer);				//only expression
+		if (r != -1)
+			return r;
 		type = 3;
-	else 
-		return lexer.get_pos();						//both zifu and expression failed
+	}
 	tmp = lexer.get_next();
 	if (tmp.get_type() != TypeEnum::RPARENT)		//")"
 	{
@@ -629,17 +644,24 @@ string SentencePrint::to_string()
 {
 	string for_return;
 	for_return.clear();
-	for_return += items[0].to_string();
-	for_return += items[1].to_string();
+	int i = 0;
+	for_return += items[i].to_string();
+	i++;
+	for_return += items[i].to_string();
+	i++;
 	if (type == 1)
 	{
 		for_return += zi_fu.to_string();
+		for_return += items[i].to_string();
+		i++;
 		for_return += expression.to_string();
 	}
 	else if (type == 2)
 		for_return += zi_fu.to_string();
 	else if (type == 3)
 		for_return += expression.to_string();
+	for_return += items[i].to_string();
+	i++;
 	for_return += "<写语句>\n";
 	return for_return;
 }
@@ -683,11 +705,14 @@ int SentenceLie::read_in(Lexer& lexer)
 {
 	word_pos = lexer.get_pos();
 	int tmp_pos = word_pos;
-	Sentence tmp;
-	while (tmp.read_in(lexer) == -1)		//TODO: check number of sentence
+	Sentence* tmp = new Sentence;
+	int r = tmp->read_in(lexer);
+	while (r == -1)		//TODO: check number of sentence
 	{
 		tmp_pos = lexer.get_pos();
-		sentences.push_back(tmp);
+		sentences.push_back(*tmp);
+		tmp = new Sentence;
+		r = tmp->read_in(lexer);
 	}
 	lexer.set_pos(tmp_pos);
 	return -1;
@@ -716,10 +741,11 @@ int ParameterValue::read_in(Lexer& lexer)
 	}
 	while (1)
 	{
-		Expression e;
-		r = e.read_in(lexer);
+		Expression* e = new Expression;
+		r = e->read_in(lexer);
 		if (r != -1)
 			return r;
+		expressions.push_back(*e);
 		tmp = lexer.peek_next();
 		if (tmp.get_type() != TypeEnum::COMMA)		//TODO: check if illegel
 			break;
@@ -740,6 +766,7 @@ string ParameterValue::to_string()
 			for_return += commas[i].to_string();
 	}
 	for_return += "<值参数表>\n";
+	return for_return;
 }
 
 int SentenceDiaoYong::read_in(Lexer& lexer)
@@ -784,6 +811,7 @@ string SentenceDiaoYong::to_string()
 
 int ConditionDefault::read_in(Lexer& lexer)
 {
+	sentence = new Sentence;
 	word_pos = lexer.get_pos();
 	default_tk = lexer.get_next();		//read default
 	if (default_tk.get_type() != TypeEnum::DEFAULTTK)
@@ -791,7 +819,7 @@ int ConditionDefault::read_in(Lexer& lexer)
 	colon = lexer.get_next();			//read :
 	if (colon.get_type() != TypeEnum::COLON)
 		return lexer.get_pos();
-	int r = sentence.read_in(lexer);	//read sentence
+	int r = sentence->read_in(lexer);	//read sentence
 	return r;
 }
 
@@ -801,13 +829,14 @@ string ConditionDefault::to_string()
 	for_return.clear();
 	for_return += default_tk.to_string();
 	for_return += colon.to_string();
-	for_return += sentence.to_string();
+	for_return += sentence->to_string();
 	for_return += "<缺省>\n";
 	return for_return;
 }
 
 int ConditionCase::read_in(Lexer& lexer)
 {
+	sentence = new Sentence;
 	word_pos = lexer.get_pos();
 	case_tk = lexer.get_next();							//read case
 	if (case_tk.get_type() != TypeEnum::CASETK)
@@ -818,7 +847,7 @@ int ConditionCase::read_in(Lexer& lexer)
 	colon = lexer.get_next();							//read :
 	if (colon.get_type() != TypeEnum::COLON)
 		return lexer.get_pos();
-	r = sentence.read_in(lexer);						//read sentence
+	r = sentence->read_in(lexer);						//read sentence
 	return r;
 }
 
@@ -829,7 +858,7 @@ string ConditionCase::to_string()
 	for_return += case_tk.to_string();
 	for_return += chang_liang.to_string();
 	for_return += colon.to_string();
-	for_return += sentence.to_string();
+	for_return += sentence->to_string();
 	for_return += "<情况子语句>\n";
 	return for_return;
 }
@@ -930,6 +959,7 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 {
 	word_pos = lexer.get_pos();
 	WordInfo tmp = lexer.get_next();
+	sentence = new Sentence;
 	if (tmp.get_type() == TypeEnum::WHILETK)			//is while
 	{
 		items.push_back(tmp);
@@ -945,7 +975,7 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		if (tmp.get_type() != TypeEnum::RPARENT)
 			return lexer.get_pos();
 		items.push_back(tmp);
-		return sentence.read_in(lexer);					//read sentence
+		return sentence->read_in(lexer);					//read sentence
 	}
 	else if (tmp.get_type() == TypeEnum::FORTK)			//is for
 	{
@@ -1000,7 +1030,7 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		if (tmp.get_type() != TypeEnum::RPARENT)
 			return lexer.get_pos();
 		items.push_back(tmp);
-		return sentence.read_in(lexer);					//read sentence
+		return sentence->read_in(lexer);					//read sentence
 	}
 	else
 	{
@@ -1018,7 +1048,7 @@ string SentenceXunHuan::to_string()
 		for_return += items[1].to_string();
 		for_return += tiao_jian.to_string();
 		for_return += items[2].to_string();
-		for_return += sentence.to_string();
+		for_return += sentence->to_string();
 	}
 	else if (type == 2)
 	{
@@ -1036,7 +1066,7 @@ string SentenceXunHuan::to_string()
 		for_return += items[9].to_string();
 		for_return += bu_chang.to_string();
 		for_return += items[10].to_string();
-		for_return += sentence.to_string();
+		for_return += sentence->to_string();
 	}
 	for_return += "<循环语句>\n";
 	return for_return;
@@ -1071,6 +1101,8 @@ string TiaoJian::to_string()
 
 int SentenceTiaoJian::read_in(Lexer& lexer)
 {
+	s_if = new Sentence;
+	s_else = new Sentence;
 	word_pos = lexer.get_pos();
 	WordInfo tmp = lexer.get_next();			//read if
 	if (tmp.get_type() != TypeEnum::IFTK)
@@ -1087,7 +1119,7 @@ int SentenceTiaoJian::read_in(Lexer& lexer)
 	if (tmp.get_type() != TypeEnum::RPARENT)
 		return lexer.get_pos();
 	items.push_back(tmp);
-	r = s_if.read_in(lexer);					//read if sentence
+	r = s_if->read_in(lexer);					//read if sentence
 	if (r != -1)
 		return -1;
 	tmp = lexer.peek_next();					//check else
@@ -1099,7 +1131,7 @@ int SentenceTiaoJian::read_in(Lexer& lexer)
 	have_else = true;
 	tmp = lexer.get_next();						//read else
 	items.push_back(tmp);
-	return s_else.read_in(lexer);
+	return s_else->read_in(lexer);
 }
 
 string SentenceTiaoJian::to_string()
@@ -1110,11 +1142,11 @@ string SentenceTiaoJian::to_string()
 	for_return += items[1].to_string();
 	for_return += tiao_jian.to_string();
 	for_return += items[2].to_string();
-	for_return += s_if.to_string();
+	for_return += s_if->to_string();
 	if (have_else)
 	{
 		for_return += items[3].to_string();
-		for_return += s_else.to_string();
+		for_return += s_else->to_string();
 	}
 	for_return += "<条件语句>\n";
 	return for_return;
@@ -1160,6 +1192,7 @@ int SentenceFuZhi::read_in(Lexer& lexer)
 	if (r != -1)
 		return r;
 	exps.push_back(right);
+	return -1;
 }
 
 string SentenceFuZhi::to_string()
@@ -1189,9 +1222,9 @@ int Sentence::read_in(Lexer& lexer)
 	switch (pre_read.get_type())
 	{
 		case TypeEnum::SEMICN:
-		type = 0;							//empty
-		semicn = lexer.get_next();
-		break;
+			type = 0;							//empty
+			semicn = lexer.get_next();
+			break;
 		case TypeEnum::WHILETK:
 		case TypeEnum::FORTK:
 			type = 1;							//xun huan
@@ -1262,15 +1295,18 @@ int Sentence::read_in(Lexer& lexer)
 				return r;
 			break;
 		case TypeEnum::LBRACE:
+		{
 			type = 9;							//yu ju lie
 			lbrace = lexer.get_next();
-			r = yu_ju_lie.read_in(lexer);
+			yu_ju_lie = new SentenceLie;
+			r = yu_ju_lie->read_in(lexer);
 			if (r != -1)
 				return r;
 			rbrace = lexer.get_next();
 			if (rbrace.get_type() != TypeEnum::RBRACE)
 				return lexer.get_pos();
 			break;
+		}
 		default:
 			return lexer.get_pos();
 	}
@@ -1317,7 +1353,7 @@ string Sentence::to_string()
 			break;
 		case 9:
 			for_return += lbrace.to_string();
-			for_return += yu_ju_lie.to_string();
+			for_return += yu_ju_lie->to_string();
 			for_return += rbrace.to_string();
 			break;
 	}
@@ -1369,7 +1405,8 @@ int Factor::read_in(Lexer& lexer)
 			{
 				type = 4;
 				lexer.set_pos(word_pos);
-				r = diao_yong.read_in(lexer);
+				diao_yong = new SentenceDiaoYong;
+				r = diao_yong->read_in(lexer);
 				if (r != -1)
 					return r;
 				break;
@@ -1417,7 +1454,7 @@ string Factor::to_string()
 			for_return += zi_fu.to_string();
 			break;
 		case 4:
-			for_return += diao_yong.to_string();
+			for_return += diao_yong->to_string();
 			break;
 		case 1:
 			int j = 0;
@@ -1472,6 +1509,7 @@ string Item::to_string()
 			for_return += signs[i].to_string();
 	}
 	for_return += "<项>\n";
+	return for_return;
 }
 
 int Expression::read_in(Lexer& lexer)
@@ -1568,6 +1606,7 @@ string FunctionMain::to_string()
 	for_return += fu_he.to_string();
 	for_return += rbrace.to_string();
 	for_return += "<主函数>\n";
+	return for_return;
 }
 
 int ParameterTable::read_in(Lexer& lexer)
@@ -1599,6 +1638,7 @@ string ParameterTable::to_string()
 		for_return += items[i].to_string();
 	}
 	for_return += "<参数表>\n";
+	return for_return;
 }
 
 int SentenceFuHe::read_in(Lexer& lexer)
@@ -1622,7 +1662,8 @@ int SentenceFuHe::read_in(Lexer& lexer)
 			return r;
 		tmp = lexer.peek_next();
 	}
-	r = yu_ju_lie.read_in(lexer);
+	yu_ju_lie = new SentenceLie;
+	r = yu_ju_lie->read_in(lexer);
 	if (r != -1)
 		return r;
 	return -1;
@@ -1636,7 +1677,7 @@ string SentenceFuHe::to_string()
 		for_return += consts.to_string();
 	if (type & 2)
 		for_return += vars.to_string();
-	for_return += yu_ju_lie.to_string();
+	for_return += yu_ju_lie->to_string();
 	for_return += "<复合语句>\n";
 	return for_return;
 }
@@ -1772,6 +1813,7 @@ void Grammar::print_to_file(string out_file_name)
 		out << funcs[i].to_string();
 	}
 	out << main_func.to_string();
+	out << "<程序>";
 	out.close();
 }
 
