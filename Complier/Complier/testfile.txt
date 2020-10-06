@@ -1,35 +1,7 @@
-const int aa = -10;
-const char cc = '+', ccc = '*';
-int bb = 11;
-int bbb = 111;
-int i[10][10];
-int ii[2] = {-1, +2};
-int iii[1][1] = {{1}};
-int iiii[1];
-int iiiii;
 void main() 
 { 
-    const int a_Chang2 = 9;
+    int a_Chang2 = 9;
+    ;
     printf("18373187");
-    i[1][1] = 99 + 10 / 10;
-    i[1][2] = 99 + 10 * 10;
-    i[1][3] = +99 - 10 / 10;
-    printf(i[1][1]);
-    printf(i[1][1] + i[1][2]);
-    printf(i[1][1] + bb);
-    printf(i[1][1] + bb / 10);
-    printf((i[1][1] - bb) / bbb + ii[1]);
-    ii[1] = 10;
-    bbb = 10;
-    if (ii[1] >= bbb)
-        bb = bb + 1;
-    if (ii[1] <= bbb)
-        bb = bb + 1;
-    else
-        bb = 0;
-    printf(bb);
-    printf(cc);
-    printf(ccc);
-    printf(iii[0][0]);
     return;
 } 

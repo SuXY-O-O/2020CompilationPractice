@@ -508,6 +508,10 @@ int VariableShuoMing::read_in(Lexer& lexer)
 	{
 		VariableDingYi tmp;
 		tmp_pos = lexer.get_pos();
+		WordInfo pre_read = lexer.peek_next();
+		if (pre_read.get_type() != TypeEnum::CHARTK
+			&& pre_read.get_type() != TypeEnum::INTTK)		//cannot be a variable ding yi
+			break;
 		if ((r = tmp.read_in(lexer) != -1))
 			break;
 		ding_yi_s.push_back(tmp);
