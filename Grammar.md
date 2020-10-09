@@ -6,13 +6,13 @@
 | 标识符 | IDENFR | else | ELSETK | - | MINU | = | ASSIGN |
 | 整形常量 | INTCON | switch | SWITCHTK | * | MULT | ; | SEMICN |
 | 字符常量 | CHARCON | case | CASETK | / | DIV | , | COMMA |
-| 字符串 | STRCON | default | DEFAULTTK | < | LSS | ( | LPARENT |
+| 字符串 | STRCON | default | DEFAULTTK | < | LSS | ( | LPARENT | 
 | const | CONSTTK | while | WHILETK | <= | LEQ | ) | RPARENT |
 | int | INTTK | for | FORTK | > | GRE | [ | LBRACK |
 | char | CHARTK | scanf | SCANFTK | >= | GEQ | ] | RBRACK |
 | void | VOIDTK | printf | PRINTFTK | == | EQL | { | LBRACE |
 | main | MAINTK | return | RETURNTK | != | NEQ | } | RBRACE |
-| if | IFTK | + | PLUS | ： | COLON |
+| if | IFTK | + | PLUS | ： | COLON | 
 
 
 - 输入：`testfile.txt`
@@ -30,21 +30,14 @@
 ### 编码后设计
 - `TypeEnum.h`
     枚举类，用于记录所有的单纯类别码；
-    
 - `WordInfo.h`; `WordInfo.cpp`
     单词信息封装类；内含：
     + 单词类别码
     + 单词对应的字符串
     + 单词所在行数
     + 单词位于所在行的位置
-    
 - `Lexer.h`; `Lexer.cpp`
     对词法分析的工具类，对读到的单词用`WordInfo`封装并存储在`vector`中；
     传入输入文件路径开始分析并存储，传入输出文件路径对读取到的单词信息进行输出。
-    + `read_in(string file_name)`
-    	从`file_name`指向的文件读取要解析的程序
-    + `print_to_file(string file_name)`
-    	把读取到的词法内容输出到`file_name`
-    
 - `main.cpp`
     主函数，传输输入、输出文件路径给工具类。
