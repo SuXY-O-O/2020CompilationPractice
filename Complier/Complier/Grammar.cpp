@@ -1,5 +1,5 @@
 ﻿#include "Grammar.h"
-//#include "TypeEnum.h"
+#include "Error.h"
 
 int ZiFuChuan::read_in(Lexer& lexer)
 {
@@ -75,10 +75,17 @@ int ConstDingYi::read_in(Lexer& lexer)
 	type = lexer.get_next();
 	if (type.get_type() == TypeEnum::INTTK)			//define a number of int
 	{
-		WordInfo tmp = lexer.get_next();
+		WordInfo tmp = lexer.peek_next();
 		while (tmp.get_type() == TypeEnum::IDENFR)
 		{
+			tmp = lexer.get_next();
 			ids.push_back(tmp);						//save id
+
+			if (!IdentifyTable::add_const(&tmp, &type))	//log id to table
+			{
+				// Chong Ding Yi
+				ErrorTable::log_error(tmp.get_line(), "b");
+			}
 
 			tmp = lexer.get_next();					//save "="
 			if (tmp.get_type() != TypeEnum::ASSIGN)
@@ -95,7 +102,7 @@ int ConstDingYi::read_in(Lexer& lexer)
 			if (tmp.get_type() == TypeEnum::COMMA)
 			{
 				puncs.push_back(lexer.get_next());	//have next
-				tmp = lexer.get_next();
+				tmp = lexer.peek_next();
 			}
 			else
 			{
@@ -107,10 +114,12 @@ int ConstDingYi::read_in(Lexer& lexer)
 
 	else if (type.get_type() == TypeEnum::CHARTK)	//define a number of char
 	{
-		WordInfo tmp = lexer.get_next();
+		WordInfo tmp = lexer.peek_next();
 		while (tmp.get_type() == TypeEnum::IDENFR)
 		{
+			tmp = lexer.get_next();
 			ids.push_back(tmp);						//save id
+			IdentifyTable::add_const(&tmp, &type);	//log id to table
 
 			tmp = lexer.get_next();					//save "="
 			if (tmp.get_type() != TypeEnum::ASSIGN)
@@ -126,7 +135,7 @@ int ConstDingYi::read_in(Lexer& lexer)
 			if (tmp.get_type() == TypeEnum::COMMA)
 			{
 				puncs.push_back(lexer.get_next());	//have next
-				tmp = lexer.get_next();
+				tmp = lexer.peek_next();
 			}
 			else
 			{
@@ -199,14 +208,16 @@ int ConstShuoMing::read_in(Lexer& lexer)
 		}
 		ding_yi_s.push_back(ding_yi_now);		//save const ding yi
 
-		tmp = lexer.get_next();					//read ";"
-		if (tmp.get_type() != TypeEnum::SEMICN)
+		//tmp = lexer.get_next();					
+		if (lexer.peek_next().get_type() != TypeEnum::SEMICN)	//read ";"
 		{
-			int r = lexer.get_pos();
-			lexer.set_pos(word_pos);
-			return r;							//if is not a ";", raise an error
+			// Wu Fen Hao
+			ErrorTable::log_error(tmp.get_line(), "k");
 		}
-		semicns.push_back(tmp);					//save ";"
+		else
+		{
+			semicns.push_back(lexer.get_next());					//save ";"
+		}
 
 		tmp = lexer.peek_next();
 	}
@@ -243,12 +254,6 @@ int ShengMingHead::read_in(Lexer& lexer)
 		lexer.set_pos(word_pos);
 		return word_pos + 2;
 	}
-	int i;
-	if (type.get_type() == TypeEnum::INTTK)
-		i = 1;
-	else
-		i = 2;
-	FunctionTable::add_func(id, i);
 	return -1;
 }
 
@@ -296,6 +301,131 @@ string ChangLiang::to_string()
 	}
 }
 
+void VariableDingYi::add_to_table()
+{
+	unsigned int i = 1;
+	while (i < define.size() && define[i].get_type() == TypeEnum::IDENFR)
+	{
+		WordInfo* now_id = &(define[i]);
+		i++;
+		unsigned int dim = 0;
+		while (i < define.size()
+			&& define[i].get_type() != TypeEnum::COMMA
+			&& define[i].get_type() != TypeEnum::ASSIGN)
+		{
+			if (define[i].get_type() == TypeEnum::LBRACK)
+				dim++;
+			i++;
+		}
+		if (!IdentifyTable::add_var(now_id, &(define[0]), dim))
+		{
+			//Chong Ding Yi
+			ErrorTable::log_error(now_id->get_line(), "b");
+		}
+		i++;
+	}
+}
+
+bool VariableDingYi::check_initial()
+{
+	if (type == 1)
+		return true;
+	IdentifyType this_type;
+	if (define[0].get_type() == TypeEnum::INTTK)
+		this_type = IdentifyType::INT;
+	else
+		this_type = IdentifyType::CHAR;
+	if (dimension == 0)
+	{
+		if (initial[0].get_type() != TypeEnum::EMPTY)
+		{
+			//Chu Shi Hua Ge Shu
+			ErrorTable::log_error(define[0].get_line(), "n");
+			return false;
+		}
+		else if (this_type != chang_liang_s[0].get_type())
+		{
+			//Chang Liang Lei Xing
+			ErrorTable::log_error(define[0].get_line(), "o");
+			return false;
+		}
+		return true;
+	}
+	else if (dimension == 1)
+	{
+		int target = zheng_shu_s[0].get_number();
+		if (target != chang_liang_s.size())
+		{
+			//Chu Shi Hua Ge Shu
+			ErrorTable::log_error(define[0].get_line(), "n");
+			return false;
+		}
+		else
+		{
+			unsigned int i;
+			for (i = 0; i < chang_liang_s.size(); i++)
+			{
+				if (chang_liang_s[i].get_type() != this_type)
+				{
+					//Chang Liang Lei Xing
+					ErrorTable::log_error(define[0].get_line(), "o");
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	else // dimension = 2
+	{
+		int target1 = zheng_shu_s[0].get_number();
+		int target2 = zheng_shu_s[1].get_number();
+		int count1 = 0;
+		int count2 = 0;
+		int braces = 0;
+		unsigned int i;
+		for (i = 0; i < initial.size(); i++)
+		{
+			if (initial[i].get_type() == TypeEnum::LBRACE)
+			{
+				braces++;
+			}
+			if (initial[i].get_type() == TypeEnum::EMPTY)
+			{
+				count2++;
+			}
+			if (initial[i].get_type() == TypeEnum::RBRACE)
+			{
+				braces--;
+				count1++;
+				if (count2 != target2 && braces == 1)
+				{
+					//Chu Shi Hua Ge Shu
+					ErrorTable::log_error(initial[i].get_line(), "n");
+					return false;
+				}
+				count2 = 0;
+			}
+		}
+		count1 -= 1;
+		if (count1 != target1)
+		{
+			//Chu Shi Hua Ge Shu
+			ErrorTable::log_error(initial[0].get_line(), "n");
+			return false;
+		}
+		for (i = 0; i < chang_liang_s.size(); i++)
+		{
+			if (chang_liang_s[i].get_type() != this_type)
+			{
+				//Chang Liang Lei Xing
+				ErrorTable::log_error(define[0].get_line(), "o");
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
 int VariableDingYi::read_in(Lexer& lexer)
 {
 	/*
@@ -312,10 +442,11 @@ int VariableDingYi::read_in(Lexer& lexer)
 	* 9: read ChangLiang		->7
 	*/
 	int state = 0;
+	type = 0;
 	WordInfo empty(TypeEnum::EMPTY, 0, 0);
 	word_pos = lexer.get_pos();
 	WordInfo tmp = lexer.peek_next();
-	while (tmp.get_type() != TypeEnum::SEMICN && state != 8)
+	while (state != 8 && tmp.get_type() != TypeEnum::SEMICN)
 	{
 		tmp = lexer.get_next();
 		switch (tmp.get_type())
@@ -337,6 +468,17 @@ int VariableDingYi::read_in(Lexer& lexer)
 			{
 				state = 2;
 				define.push_back(tmp);
+				if (lexer.peek_next().get_type() == TypeEnum::LPARENT)
+					return lexer.get_pos();				//not a VariableDingYi
+				if (lexer.peek_next().get_type() != TypeEnum::LBRACK
+					&& lexer.peek_next().get_type() != TypeEnum::ASSIGN
+					&& lexer.peek_next().get_type() != TypeEnum::COMMA)
+				{
+					type = 1;
+					check_initial();
+					add_to_table();
+					return -1;
+				}
 				break;
 			}
 			else
@@ -369,6 +511,22 @@ int VariableDingYi::read_in(Lexer& lexer)
 				define.push_back(empty);
 				WuFuHaoShu shu(tmp);
 				zheng_shu_s.push_back(shu);
+				WordInfo wi = lexer.peek_next();
+				if (wi.get_type() != TypeEnum::RBRACK)
+				{
+					// Wu Zhong Kuo Hao
+					ErrorTable::log_error(tmp.get_line(), "m");
+					state = 5;
+					if (wi.get_type() != TypeEnum::ASSIGN
+						&& wi.get_type() != TypeEnum::COMMA
+						&& wi.get_type() != TypeEnum::LBRACK)
+					{
+						type = 1;
+						check_initial();
+						add_to_table();
+						return -1;
+					}
+				}
 				break;
 			}
 			else
@@ -380,9 +538,18 @@ int VariableDingYi::read_in(Lexer& lexer)
 			{
 				state = 5;
 				define.push_back(tmp);
+				if (lexer.peek_next().get_type() != TypeEnum::ASSIGN
+					&& lexer.peek_next().get_type() != TypeEnum::COMMA
+					&& lexer.peek_next().get_type() != TypeEnum::LBRACK)
+				{
+					type = 1;
+					check_initial();
+					add_to_table();
+					return -1;
+				}
 				break;
 			}
-			else
+			else 
 			{
 				return lexer.get_pos();
 			}
@@ -390,6 +557,7 @@ int VariableDingYi::read_in(Lexer& lexer)
 			if (state == 2 || state == 5)
 			{
 				state = 6;
+				type = 1;
 				define.push_back(tmp);
 				break;
 			}
@@ -421,40 +589,45 @@ int VariableDingYi::read_in(Lexer& lexer)
 	if (state != 8)	//without initialize
 	{
 		type = 1;
+		add_to_table();
 		return -1;
 	}
 	type = 2;		//read in initialize
 	tmp = lexer.peek_next();
 	int braces = 0;
-	while (tmp.get_type() != TypeEnum::SEMICN)
+	while (1)
 	{
 		switch (tmp.get_type())
 		{
-		case TypeEnum::LBRACE:
-			braces++;				//TODO: check braces in [0, 2]
-			tmp = lexer.get_next();
-			initial.push_back(tmp);
-			break;
-		case TypeEnum::RBRACE:
-			braces--;
-			tmp = lexer.get_next();
-			initial.push_back(tmp);
-			break;
-		case TypeEnum::COMMA:
-			tmp = lexer.get_next();	//TODO: check (number of ",") <= (size of the array)
-			initial.push_back(tmp);
-			break;
-		default:					//TODO: check dimension == braces
-			initial.push_back(empty);//set the position for ChangLiang
-			ChangLiang chang;
-			int r;
-			if ((r = chang.read_in(lexer)) != -1)
-				return r;
-			chang_liang_s.push_back(chang);
-			break;
+			case TypeEnum::LBRACE:
+				braces++;			
+				tmp = lexer.get_next();
+				initial.push_back(tmp);
+				break;
+			case TypeEnum::RBRACE:
+				braces--;
+				tmp = lexer.get_next();
+				initial.push_back(tmp);
+				break;
+			case TypeEnum::COMMA:
+				tmp = lexer.get_next();	
+				initial.push_back(tmp);
+				break;
+			default:				
+				initial.push_back(empty);//set the position for ChangLiang
+				ChangLiang chang;
+				int r;
+				if ((r = chang.read_in(lexer)) != -1)
+					return r;
+				chang_liang_s.push_back(chang);
+				break;
 		}//end switch
+		if (braces == 0)
+			break;
 		tmp = lexer.peek_next();
 	}//end while
+	check_initial();
+	add_to_table();
 	return -1;
 }
 
@@ -508,6 +681,7 @@ int VariableShuoMing::read_in(Lexer& lexer)
 	{
 		VariableDingYi tmp;
 		tmp_pos = lexer.get_pos();
+		int line_count = lexer.peek_next().get_line();
 		WordInfo pre_read = lexer.peek_next();
 		if (pre_read.get_type() != TypeEnum::CHARTK
 			&& pre_read.get_type() != TypeEnum::INTTK)		//cannot be a variable ding yi
@@ -515,7 +689,14 @@ int VariableShuoMing::read_in(Lexer& lexer)
 		if ((r = tmp.read_in(lexer) != -1))
 			break;
 		ding_yi_s.push_back(tmp);
-		semicns.push_back(lexer.get_next()); //";" have been checked when reading ding_yi
+		WordInfo wi = lexer.peek_next();
+		if (wi.get_type() == TypeEnum::SEMICN)
+			semicns.push_back(lexer.get_next()); 
+		else
+		{
+			// Wu Fen Hao
+			ErrorTable::log_error(line_count, "k");
+		}
 		count++;
 	}
 	if (count == 0)		//read in none
@@ -554,29 +735,45 @@ int SentenceReturn::read_in(Lexer& lexer)
 	}
 	items.push_back(tmp);
 	tmp = lexer.peek_next();
-	if (tmp.get_type() == TypeEnum::SEMICN)
-	{
-		type = 2;
-		return -1;							//got a none return
-	}
-	else if (tmp.get_type() == TypeEnum::LPARENT)
+	
+	if (tmp.get_type() == TypeEnum::LPARENT)
 	{
 		type = 1;
 		tmp = lexer.get_next();
 		items.push_back(tmp);
+		if (lexer.peek_next().get_type() == TypeEnum::RPARENT)
+		{
+			type = 0;
+			items.push_back(lexer.get_next());
+			return -1;							//got a wrong have return
+		}
 		int r;
 		if ((r = expression.read_in(lexer)) != -1)
 			return r;						//read expression fail
-		tmp = lexer.get_next();
-		if (tmp.get_type() != TypeEnum::RPARENT)
-			return lexer.get_pos();			// an error
-		items.push_back(tmp);
+		if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+		{
+			// Wu Xiao Kuo Hao
+			ErrorTable::log_error(tmp.get_line(), "l");
+		}
+		else
+		{
+			items.push_back(lexer.get_next());
+		}
 		return -1;							//got a have return
 	}
 	else
 	{
-		return lexer.get_pos();
+		type = 2;
+		return -1;							//got a none return
 	}
+}
+
+vector<SentenceReturn*> SentenceReturn::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	for_return.push_back(this);
+	return for_return;
 }
 
 string SentenceReturn::to_string()
@@ -635,13 +832,23 @@ int SentencePrint::read_in(Lexer& lexer)
 			return r;
 		type = 3;
 	}
-	tmp = lexer.get_next();
-	if (tmp.get_type() != TypeEnum::RPARENT)		//")"
+	if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
 	{
-		return lexer.get_pos();
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(tmp.get_line(), "l");
 	}
-	items.push_back(tmp);
+	else
+	{
+		items.push_back(lexer.get_next());
+	}
 	return -1;
+}
+
+vector<SentenceReturn*> SentencePrint::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	return for_return;
 }
 
 string SentencePrint::to_string()
@@ -684,12 +891,34 @@ int SentenceRead::read_in(Lexer& lexer)
 	tmp = lexer.get_next();						//identifier
 	if (tmp.get_type() != TypeEnum::IDENFR)
 		return lexer.get_pos();		//error
+	if (!IdentifyTable::have_var_const(&tmp))
+	{
+		// Wei Ding Yi
+		ErrorTable::log_error(tmp.get_line(), "c");
+	}
+	else if (IdentifyTable::get_property_by_name(&tmp) == IdentifyProperty::CONST)
+	{
+		// Chang Liang Fu Zhi
+		ErrorTable::log_error(tmp.get_line(), "j");
+	}
 	items.push_back(tmp);
-	tmp = lexer.get_next();						//")"
-	if (tmp.get_type() != TypeEnum::RPARENT)
-		return lexer.get_pos();		//error
-	items.push_back(tmp);
+	if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+	{
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(tmp.get_line(), "l");
+	}
+	else
+	{
+		items.push_back(lexer.get_next());
+	}
 	return -1;
+}
+
+vector<SentenceReturn*> SentenceRead::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	return for_return;
 }
 
 string SentenceRead::to_string()
@@ -722,6 +951,19 @@ int SentenceLie::read_in(Lexer& lexer)
 	return -1;
 }
 
+vector<SentenceReturn*> SentenceLie::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	unsigned int i;
+	for (i = 0; i < sentences.size(); i++)
+	{
+		vector<SentenceReturn*> this_st = sentences[i].get_all_return();
+		for_return.insert(for_return.end(), this_st.begin(), this_st.end());
+	}
+	return for_return;
+}
+
 string SentenceLie::to_string()
 {
 	string for_return;
@@ -743,6 +985,14 @@ int ParameterValue::read_in(Lexer& lexer)
 		commas.clear();
 		return -1;
 	}
+	else if (tmp.get_type() == TypeEnum::SEMICN
+		|| tmp.get_type() == TypeEnum::MULT
+		|| tmp.get_type() == TypeEnum::DIV)			// no RPARENT error
+	{
+		expressions.clear();
+		commas.clear();
+		return -1;
+	}
 	while (1)
 	{
 		Expression* e = new Expression;
@@ -751,7 +1001,7 @@ int ParameterValue::read_in(Lexer& lexer)
 			return r;
 		expressions.push_back(*e);
 		tmp = lexer.peek_next();
-		if (tmp.get_type() != TypeEnum::COMMA)		//TODO: check if illegel
+		if (tmp.get_type() != TypeEnum::COMMA)
 			break;
 		tmp = lexer.get_next();
 		commas.push_back(tmp);
@@ -780,10 +1030,19 @@ int SentenceDiaoYong::read_in(Lexer& lexer)
 	if (tmp.get_type() != TypeEnum::IDENFR)
 		return lexer.get_pos();
 	items.push_back(tmp);
-	if (FunctionTable::have_return(tmp))
-		type = 1;
+	if (!IdentifyTable::have_func(&tmp))
+	{
+		// Wei Ding Yi
+		ErrorTable::log_error(tmp.get_line(), "c");
+		type = 0;
+	}
 	else
-		type = 2;
+	{
+		if (IdentifyTable::have_return(&tmp))
+			type = 1;
+		else
+			type = 2;
+	}
 	tmp = lexer.get_next();				//read (
 	if (tmp.get_type() != TypeEnum::LPARENT)
 		return lexer.get_pos();
@@ -791,10 +1050,27 @@ int SentenceDiaoYong::read_in(Lexer& lexer)
 	int r = paras.read_in(lexer);		//read values
 	if (r != -1)
 		return r;
-	tmp = lexer.get_next();				//read )
-	if (tmp.get_type() != TypeEnum::RPARENT)
-		return lexer.get_pos();
-	items.push_back(tmp);
+
+	if (!IdentifyTable::check_func_para_num(&(items[0]), &paras))
+	{
+		// Can Shu Ge Shu
+		ErrorTable::log_error(items[0].get_line(), "d");
+	}
+	else if (!IdentifyTable::check_func_para_type(&(items[0]), &paras))
+	{
+		// Can Shu Lei Xing
+		ErrorTable::log_error(items[0].get_line(), "e");
+	}
+
+	if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+	{
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(tmp.get_line(), "l");
+	}
+	else
+	{
+		items.push_back(lexer.get_next());
+	}
 	return -1;
 }
 
@@ -817,14 +1093,27 @@ int ConditionDefault::read_in(Lexer& lexer)
 {
 	sentence = new Sentence;
 	word_pos = lexer.get_pos();
-	default_tk = lexer.get_next();		//read default
+	default_tk = lexer.peek_next();		//read default
 	if (default_tk.get_type() != TypeEnum::DEFAULTTK)
-		return lexer.get_pos();
+	{
+		// Wu Que Sheng
+		ErrorTable::log_error(default_tk.get_line(), "p");
+		return -1;
+	}
+	else
+	{
+		lexer.get_next();
+	}
 	colon = lexer.get_next();			//read :
 	if (colon.get_type() != TypeEnum::COLON)
 		return lexer.get_pos();
 	int r = sentence->read_in(lexer);	//read sentence
 	return r;
+}
+
+vector<SentenceReturn*> ConditionDefault::get_all_return()
+{
+	return sentence->get_all_return();
 }
 
 string ConditionDefault::to_string()
@@ -838,7 +1127,7 @@ string ConditionDefault::to_string()
 	return for_return;
 }
 
-int ConditionCase::read_in(Lexer& lexer)
+int ConditionCase::read_in(Lexer& lexer, IdentifyType target)
 {
 	sentence = new Sentence;
 	word_pos = lexer.get_pos();
@@ -848,11 +1137,21 @@ int ConditionCase::read_in(Lexer& lexer)
 	int r = chang_liang.read_in(lexer);					//read chang liang
 	if (r != -1)
 		return -1;
+	if (chang_liang.get_type() != target)
+	{
+		// Chang Liang Lei Xing
+		ErrorTable::log_error(case_tk.get_line(), "o");
+	}
 	colon = lexer.get_next();							//read :
 	if (colon.get_type() != TypeEnum::COLON)
 		return lexer.get_pos();
 	r = sentence->read_in(lexer);						//read sentence
 	return r;
+}
+
+vector<SentenceReturn*> ConditionCase::get_all_return()
+{
+	return sentence->get_all_return();
 }
 
 string ConditionCase::to_string()
@@ -867,14 +1166,14 @@ string ConditionCase::to_string()
 	return for_return;
 }
 
-int ConditionTable::read_in(Lexer& lexer)
+int ConditionTable::read_in(Lexer& lexer, IdentifyType target)
 {
 	word_pos = lexer.get_pos();
 	WordInfo tmp = lexer.peek_next();
 	while (tmp.get_type() == TypeEnum::CASETK)
 	{
 		ConditionCase now;
-		int r = now.read_in(lexer);
+		int r = now.read_in(lexer, target);
 		if (r != -1)
 			return r;
 		cases.push_back(now);
@@ -883,6 +1182,19 @@ int ConditionTable::read_in(Lexer& lexer)
 	if (cases.size() == 0)
 		return lexer.get_pos();
 	return -1;
+}
+
+vector<SentenceReturn*> ConditionTable::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	unsigned int i;
+	for (i = 0; i < cases.size(); i++)
+	{
+		vector<SentenceReturn*> this_case = cases[i].get_all_return();
+		for_return.insert(for_return.end(), this_case.begin(), this_case.end());
+	}
+	return for_return;
 }
 
 string ConditionTable::to_string()
@@ -911,17 +1223,24 @@ int SentenceQingKuang::read_in(Lexer& lexer)
 	int r = expression.read_in(lexer);				//read expression
 	if (r != -1)
 		return r;
-	tmp = lexer.get_next();							//read )
-	if (tmp.get_type() != TypeEnum::RPARENT)
-		return lexer.get_pos();
-	items.push_back(tmp);
+	IdentifyType target_type = expression.check_type();
+	if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+	{												// read ')'
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(tmp.get_line(), "l");
+	}
+	else
+	{
+		items.push_back(lexer.get_next());
+	}
 	tmp = lexer.get_next();							//read {
 	if (tmp.get_type() != TypeEnum::LBRACE)
 		return lexer.get_pos();
 	items.push_back(tmp);
-	r = table.read_in(lexer);						//read table
+	r = table.read_in(lexer, target_type);			//read table
 	if (r != -1)
 		return r;
+	int line_count = lexer.peek_next().get_line();
 	r = def.read_in(lexer);							//read default
 	if (r != -1)
 		return r;
@@ -930,6 +1249,17 @@ int SentenceQingKuang::read_in(Lexer& lexer)
 		return lexer.get_pos();
 	items.push_back(tmp);
 	return -1;
+}
+
+vector<SentenceReturn*> SentenceQingKuang::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	vector<SentenceReturn*> table_return = table.get_all_return();
+	vector<SentenceReturn*> def_return = def.get_all_return();
+	for_return.insert(for_return.end(), table_return.begin(), table_return.end());
+	for_return.insert(for_return.end(), def_return.begin(), def_return.end());
+	return for_return;
 }
 
 string SentenceQingKuang::to_string()
@@ -975,11 +1305,16 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		int r = tiao_jian.read_in(lexer);				//read tiao jian
 		if (r != -1)
 			return r;
-		tmp = lexer.get_next();							//read )
-		if (tmp.get_type() != TypeEnum::RPARENT)
-			return lexer.get_pos();
-		items.push_back(tmp);
-		return sentence->read_in(lexer);					//read sentence
+		if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+		{												// read ')'
+			// Wu Xiao Kuo Hao
+			ErrorTable::log_error(tmp.get_line(), "l");
+		}
+		else
+		{
+			items.push_back(lexer.get_next());
+		}
+		return sentence->read_in(lexer);				//read sentence
 	}
 	else if (tmp.get_type() == TypeEnum::FORTK)			//is for
 	{
@@ -992,6 +1327,16 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		tmp = lexer.get_next();							//read id
 		if (tmp.get_type() != TypeEnum::IDENFR)
 			return lexer.get_pos();
+		if (!IdentifyTable::have_var_const(&tmp))
+		{
+			// Wei Ding Yi
+			ErrorTable::log_error(tmp.get_line(), "c");
+		}
+		else if (IdentifyTable::get_property_by_name(&tmp) == IdentifyProperty::CONST)
+		{
+			// Chang Liang Fu Zhi
+			ErrorTable::log_error(tmp.get_line(), "j");
+		}
 		items.push_back(tmp);
 		tmp = lexer.get_next();							//read =
 		if (tmp.get_type() != TypeEnum::ASSIGN)
@@ -1000,20 +1345,37 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		int r = expression.read_in(lexer);				//read expression
 		if (r != -1)
 			return -1;
-		tmp = lexer.get_next();							//read ;
+		tmp = lexer.peek_next();						//read ;
 		if (tmp.get_type() != TypeEnum::SEMICN)
-			return lexer.get_pos();
-		items.push_back(tmp);
+		{
+			// Wu Fen Hao
+			ErrorTable::log_error(tmp.get_line(), "k");
+		}
+		else
+		{
+			items.push_back(lexer.get_next());
+		}
 		r = tiao_jian.read_in(lexer);					//read tiao jian
 		if (r != -1)
 			return r;
-		tmp = lexer.get_next();							//read ;
+		tmp = lexer.peek_next();						//read ;
 		if (tmp.get_type() != TypeEnum::SEMICN)
-			return lexer.get_pos();
-		items.push_back(tmp);
+		{
+			// Wu Fen Hao
+			ErrorTable::log_error(tmp.get_line(), "k");
+		}
+		else
+		{
+			items.push_back(lexer.get_next());
+		}
 		tmp = lexer.get_next();							//read id
 		if (tmp.get_type() != TypeEnum::IDENFR)
 			return lexer.get_pos();
+		if (!IdentifyTable::have_var_const(&tmp))
+		{
+			// Wei Ding Yi
+			ErrorTable::log_error(tmp.get_line(), "c");
+		}
 		items.push_back(tmp);
 		tmp = lexer.get_next();							//read =
 		if (tmp.get_type() != TypeEnum::ASSIGN)
@@ -1022,6 +1384,11 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		tmp = lexer.get_next();							//read id
 		if (tmp.get_type() != TypeEnum::IDENFR)
 			return lexer.get_pos();
+		if (!IdentifyTable::have_var_const(&tmp))
+		{
+			// Wei Ding Yi
+			ErrorTable::log_error(tmp.get_line(), "c");
+		}
 		items.push_back(tmp);
 		tmp = lexer.get_next();							//read +|-
 		if (tmp.get_type() != TypeEnum::PLUS && tmp.get_type() != TypeEnum::MINU)
@@ -1030,16 +1397,26 @@ int SentenceXunHuan::read_in(Lexer& lexer)
 		r = bu_chang.read_in(lexer);					//read bu chang
 		if (r != -1)
 			return r;
-		tmp = lexer.get_next();							//read )
-		if (tmp.get_type() != TypeEnum::RPARENT)
-			return lexer.get_pos();
-		items.push_back(tmp);
-		return sentence->read_in(lexer);					//read sentence
+		if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+		{												// read ')'
+			// Wu Xiao Kuo Hao
+			ErrorTable::log_error(tmp.get_line(), "l");
+		}
+		else
+		{
+			items.push_back(lexer.get_next());
+		}
+		return sentence->read_in(lexer);				//read sentence
 	}
 	else
 	{
 		return lexer.get_pos();
 	}
+}
+
+vector<SentenceReturn*> SentenceXunHuan::get_all_return()
+{
+	return sentence->get_all_return();
 }
 
 string SentenceXunHuan::to_string()
@@ -1089,7 +1466,16 @@ int TiaoJian::read_in(Lexer& lexer)
 	{
 		return lexer.get_pos();
 	}
-	return e_right.read_in(lexer);
+	r =  e_right.read_in(lexer);
+	if (r != -1)
+		return r;
+	if (e_left.check_type() != IdentifyType::INT
+		|| e_right.check_type() != IdentifyType::INT)
+	{
+		// Tiao Jian 
+		ErrorTable::log_error(relation.get_line(), "f");
+	}
+	return -1;
 }
 
 string TiaoJian::to_string()
@@ -1119,10 +1505,15 @@ int SentenceTiaoJian::read_in(Lexer& lexer)
 	int r = tiao_jian.read_in(lexer);			//read tiao jian
 	if (r != -1)
 		return r;
-	tmp = lexer.get_next();						//read )
-	if (tmp.get_type() != TypeEnum::RPARENT)
-		return lexer.get_pos();
-	items.push_back(tmp);
+	if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+	{												// read ')'
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(tmp.get_line(), "l");
+	}
+	else
+	{
+		items.push_back(lexer.get_next());
+	}
 	r = s_if->read_in(lexer);					//read if sentence
 	if (r != -1)
 		return -1;
@@ -1136,6 +1527,20 @@ int SentenceTiaoJian::read_in(Lexer& lexer)
 	tmp = lexer.get_next();						//read else
 	items.push_back(tmp);
 	return s_else->read_in(lexer);
+}
+
+vector<SentenceReturn*> SentenceTiaoJian::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	vector<SentenceReturn*> if_return = s_if->get_all_return();
+	for_return.insert(for_return.end(), if_return.begin(), if_return.end());
+	if (have_else)
+	{
+		vector<SentenceReturn*> else_return = s_else->get_all_return();
+		for_return.insert(for_return.end(), else_return.begin(), else_return.end());
+	}
+	return for_return;
 }
 
 string SentenceTiaoJian::to_string()
@@ -1163,11 +1568,21 @@ int SentenceFuZhi::read_in(Lexer& lexer)
 	WordInfo empty(TypeEnum::EMPTY, 0, 0);
 	while (tmp.get_type() != TypeEnum::ASSIGN)
 	{
-		switch (tmp.get_type())						//TODO : check error
+		switch (tmp.get_type())						
 		{
 			case TypeEnum::IDENFR:
 				tmp = lexer.get_next();
 				items.push_back(tmp);
+				if (!IdentifyTable::have_var_const(&tmp))
+				{
+					// Wei Ding Yi
+					ErrorTable::log_error(tmp.get_line(), "c");
+				}
+				else if (IdentifyTable::get_property_by_name(&tmp) == IdentifyProperty::CONST)
+				{
+					// Chang Liang Fu Zhi
+					ErrorTable::log_error(tmp.get_line(), "j");
+				}
 				break;
 			case TypeEnum::LBRACK:
 			{
@@ -1178,13 +1593,23 @@ int SentenceFuZhi::read_in(Lexer& lexer)
 				int r = e.read_in(lexer);
 				if (r != -1)
 					return r;
+				if (e.check_type() != IdentifyType::INT)
+				{
+					// Shu Zu Xia Biao
+					ErrorTable::log_error(tmp.get_line(), "i");
+				}
 				exps.push_back(e);
+				if (lexer.peek_next().get_type() != TypeEnum::RBRACK)
+				{
+					// Wu Zhong Kuo Hao
+					ErrorTable::log_error(tmp.get_line(), "m");
+				}
+				else
+				{
+					items.push_back(lexer.get_next());
+				}
 				break;
 			}
-			case TypeEnum::RBRACK:
-				tmp = lexer.get_next();
-				items.push_back(tmp);
-				break;
 		}
 		tmp = lexer.peek_next();
 	}
@@ -1197,6 +1622,13 @@ int SentenceFuZhi::read_in(Lexer& lexer)
 		return r;
 	exps.push_back(right);
 	return -1;
+}
+
+vector<SentenceReturn*> SentenceFuZhi::get_all_return()
+{
+	vector<SentenceReturn*> for_return;
+	for_return.clear();
+	return for_return;
 }
 
 string SentenceFuZhi::to_string()
@@ -1261,36 +1693,64 @@ int Sentence::read_in(Lexer& lexer)
 				if (r != -1)
 					return r;
 			}
-			semicn = lexer.get_next();
+			semicn = lexer.peek_next();
 			if (semicn.get_type() != TypeEnum::SEMICN)
-				return lexer.get_pos();
+			{
+				// Wu Fen Hao
+				ErrorTable::log_error(pre_read.get_line(), "k");
+			}
+			else
+			{
+				lexer.get_next();
+			}
 			break;
 		case TypeEnum::SCANFTK:
 			type = 5;							//scanf
 			r = read.read_in(lexer);
 			if (r != -1)
 				return r;
-			semicn = lexer.get_next();
+			semicn = lexer.peek_next();
 			if (semicn.get_type() != TypeEnum::SEMICN)
-				return lexer.get_pos();
+			{
+				// Wu Fen Hao
+				ErrorTable::log_error(pre_read.get_line(), "k");
+			}
+			else
+			{
+				lexer.get_next();
+			}
 			break;
 		case TypeEnum::PRINTFTK:
 			type = 6;							//printf
 			r = print.read_in(lexer);
 			if (r != -1)
 				return r;
-			semicn = lexer.get_next();
+			semicn = lexer.peek_next();
 			if (semicn.get_type() != TypeEnum::SEMICN)
-				return lexer.get_pos();
+			{
+				// Wu Fen Hao
+				ErrorTable::log_error(pre_read.get_line(), "k");
+			}
+			else
+			{
+				lexer.get_next();
+			}
 			break;
 		case TypeEnum::RETURNTK:
 			type = 7;							//return
 			r = fan_hui.read_in(lexer);
 			if (r != -1)
 				return r;
-			semicn = lexer.get_next();
+			semicn = lexer.peek_next();
 			if (semicn.get_type() != TypeEnum::SEMICN)
-				return lexer.get_pos();
+			{
+				// Wu Fen Hao
+				ErrorTable::log_error(pre_read.get_line(), "k");
+			}
+			else
+			{
+				lexer.get_next();
+			}
 			break;
 		case TypeEnum::SWITCHTK:
 			type = 8;							//qing kuang
@@ -1315,6 +1775,32 @@ int Sentence::read_in(Lexer& lexer)
 			return lexer.get_pos();
 	}
 	return -1;
+}
+
+vector<SentenceReturn*> Sentence::get_all_return()
+{
+	switch (type)
+	{
+		case 1:
+			return xun_huan.get_all_return();
+			break;
+		case 2:
+			return tiao_jian.get_all_return();
+			break;
+		case 7:
+			return fan_hui.get_all_return();
+			break;
+		case 8:
+			return qing_kuang.get_all_return();
+			break;
+		case 9:
+			return yu_ju_lie->get_all_return();
+			break;
+		default:
+			vector<SentenceReturn*> for_return;
+			for_return.clear();
+			return for_return;
+	}
 }
 
 string Sentence::to_string()
@@ -1396,10 +1882,15 @@ int Factor::read_in(Lexer& lexer)
 				return r;
 			exps.push_back(e);
 			ids.push_back(empty);
-			pre_read = lexer.get_next();
-			if (pre_read.get_type() != TypeEnum::RPARENT)
-				return lexer.get_pos();
-			ids.push_back(pre_read);
+			if (lexer.peek_next().get_type() != TypeEnum::RPARENT)
+			{
+				// WU Xiao Kuo Hao
+				ErrorTable::log_error(pre_read.get_line(), "l");
+			}
+			else
+			{
+				ids.push_back(lexer.get_next());
+			}
 			break; 
 		}
 		case TypeEnum::IDENFR:
@@ -1421,6 +1912,11 @@ int Factor::read_in(Lexer& lexer)
 				lexer.set_pos(word_pos);
 				pre_read = lexer.get_next();
 				ids.push_back(pre_read);
+				if (!IdentifyTable::have_var_const(&pre_read))
+				{
+					// Wei Ding Yi
+					ErrorTable::log_error(pre_read.get_line(), "c");
+				}
 				pre_read = lexer.peek_next();
 				while (pre_read.get_type() == TypeEnum::LBRACK)
 				{
@@ -1430,11 +1926,21 @@ int Factor::read_in(Lexer& lexer)
 					if (r != -1)
 						return r;
 					exps.push_back(e);
+					if (e.check_type() != IdentifyType::INT)
+					{
+						// Shu Zu XIa Biao
+						ErrorTable::log_error(pre_read.get_line(), "i");
+					}
 					ids.push_back(empty);
-					pre_read = lexer.get_next();
-					if (pre_read.get_type() != TypeEnum::RBRACK)
-						return lexer.get_pos();
-					ids.push_back(pre_read);
+					if (lexer.peek_next().get_type() != TypeEnum::RBRACK)
+					{
+						// Wu Zhong Kuo Hao
+						ErrorTable::log_error(pre_read.get_line(), "m");
+					}
+					else
+					{
+						ids.push_back(lexer.get_next());
+					}
 					pre_read = lexer.peek_next();
 				}
 			}
@@ -1443,6 +1949,28 @@ int Factor::read_in(Lexer& lexer)
 			return lexer.get_pos();
 	}
 	return -1;
+}
+
+IdentifyType Factor::check_type()
+{
+	if (type == 2)
+		return IdentifyType::INT;
+	if (type == 3)
+		return IdentifyType::CHAR;
+	if (type == 4)
+		return IdentifyTable::get_return_type(diao_yong->get_func_id());
+	if (type == 1)
+	{
+		if (ids[0].get_type() == TypeEnum::LPARENT)
+		{
+			return exps[0].check_type();
+		}
+		else
+		{
+			return IdentifyTable::get_type_by_name(&(ids[0]));
+		}
+	}
+	return IdentifyType::NONE;
 }
 
 string Factor::to_string()
@@ -1502,6 +2030,14 @@ int Item::read_in(Lexer& lexer)
 	return -1;
 }
 
+IdentifyType Item::check_type()
+{
+	if (signs.size() != 0)
+		return IdentifyType::INT;
+	else
+		return factors[0].check_type();
+}
+
 string Item::to_string()
 {
 	string for_return;
@@ -1546,6 +2082,14 @@ int Expression::read_in(Lexer& lexer)
 	return -1;
 }
 
+IdentifyType Expression::check_type()
+{
+	if (signs.size() != 0)
+		return IdentifyType::INT;
+	else
+		return items[0].check_type();
+}
+
 string Expression::to_string()
 {
 	string for_return;
@@ -1579,12 +2123,20 @@ int FunctionMain::read_in(Lexer& lexer)
 	main_tk = lexer.get_next();
 	if (main_tk.get_type() != TypeEnum::MAINTK)
 		return lexer.get_pos();
+	IdentifyTable::add_func(&main_tk, IdentifyType::VOID, NULL);
 	lparent = lexer.get_next();
 	if (lparent.get_type() != TypeEnum::LPARENT)
 		return lexer.get_pos();
-	rparent = lexer.get_next();
+	rparent = lexer.peek_next();
 	if (rparent.get_type() != TypeEnum::RPARENT)
-		return lexer.get_pos();
+	{
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(lparent.get_line(), "l");
+	}
+	else
+	{
+		lexer.get_next();
+	}
 	lbrace = lexer.get_next();
 	if (lbrace.get_type() != TypeEnum::LBRACE)
 		return lexer.get_pos();
@@ -1594,7 +2146,16 @@ int FunctionMain::read_in(Lexer& lexer)
 	rbrace = lexer.get_next();
 	if (rbrace.get_type() != TypeEnum::RBRACE)
 		return lexer.get_pos();
-	FunctionTable::add_func(main_tk, 0);
+	vector<SentenceReturn*> returns = fu_he.get_all_return();
+	unsigned int i;
+	for (i = 0; i < returns.size(); i++)
+	{
+		if (returns[i]->get_return_type() != IdentifyType::VOID)
+		{
+			// Wu Fan Hui Zhi Han Shu Bu Pi Pei
+			ErrorTable::log_error(returns[i]->get_word_line(), "g");
+		}
+	}
 	return -1;
 }
 
@@ -1617,18 +2178,31 @@ int ParameterTable::read_in(Lexer& lexer)
 {
 	word_pos = lexer.get_pos();
 	WordInfo tmp = lexer.peek_next();
-	int count = 0;
-	while (tmp.get_type() != TypeEnum::RPARENT)
+	count = 0;
+	items.clear();
+	types.clear();
+	ids.clear();
+	while (tmp.get_type() == TypeEnum::INTTK || tmp.get_type() == TypeEnum::CHARTK)
 	{
-		if (tmp.get_type() == TypeEnum::IDENFR)
-			count++;
-		items.push_back(lexer.get_next());
+		types.push_back(lexer.get_next());
+		ids.push_back(lexer.get_next());
+		count++;
 		tmp = lexer.peek_next();
+		if (tmp.get_type() == TypeEnum::COMMA)
+		{
+			items.push_back(lexer.get_next());
+			tmp = lexer.peek_next();
+		}
+		else
+		{
+			break;
+		}
 	}
 	if (count == 0)
 		is_empty = true;
 	else
 		is_empty = false;
+	//printf("ids:%d, types:%d\n", ids.size(), types.size());
 	return -1;
 	//TODO : check wrong
 }
@@ -1637,10 +2211,15 @@ string ParameterTable::to_string()
 {
 	string for_return;
 	for_return.clear();
-	for (int i = 0; i < items.size(); i++)
+	unsigned int i;
+	for (i = 0; i < count - 1; i++)
 	{
-		for_return += items[i].to_string();
+		for_return += types[i].to_string();
+		for_return += ids[i].to_string();
+		for_return += items[0].to_string();
 	}
+	for_return += types[count - 1].to_string();
+	for_return += ids[count - 1].to_string();
 	for_return += "<参数表>\n";
 	return for_return;
 }
@@ -1673,6 +2252,11 @@ int SentenceFuHe::read_in(Lexer& lexer)
 	return -1;
 }
 
+vector<SentenceReturn*> SentenceFuHe::get_all_return()
+{
+	return yu_ju_lie->get_all_return();
+}
+
 string SentenceFuHe::to_string()
 {
 	string for_return;
@@ -1690,6 +2274,7 @@ int FunctionDingYi::read_in(Lexer& lexer)
 {
 	word_pos = lexer.get_pos();
 	WordInfo tmp = lexer.peek_next();
+	IdentifyType return_type;
 	if (tmp.get_type() == TypeEnum::VOIDTK)
 	{
 		have_return = false;
@@ -1697,26 +2282,47 @@ int FunctionDingYi::read_in(Lexer& lexer)
 		id = lexer.get_next();
 		if (id.get_type() != TypeEnum::IDENFR)
 			return lexer.get_pos();
-		FunctionTable::add_func(id, 0);
+		return_type = IdentifyType::VOID;
 	}
 	else if (tmp.get_type() == TypeEnum::INTTK || tmp.get_type() == TypeEnum::CHARTK)
 	{
 		have_return = true;
+		if (tmp.get_type() == TypeEnum::INTTK)
+			return_type = IdentifyType::INT;
+		else
+			return_type = IdentifyType::CHAR;
 		int r = head.read_in(lexer);
 		if (r != -1)
 			return r;
+		id = head.get_id();
 	}
 	else
 		return lexer.get_pos();
+
 	lparent = lexer.get_next();
 	if (lparent.get_type() != TypeEnum::LPARENT)
 		return lexer.get_pos();
+
 	int r = table.read_in(lexer);
 	if (r != -1)
 		return r;
-	rparent = lexer.get_next();
+
+	if (!IdentifyTable::add_func(&id, return_type, &table))
+	{
+		// Chong Ding Yi
+		ErrorTable::log_error(id.get_line(), "b");
+	}
+
+	rparent = lexer.peek_next();
 	if (rparent.get_type() != TypeEnum::RPARENT)
-		return lexer.get_pos();
+	{
+		// Wu Xiao Kuo Hao
+		ErrorTable::log_error(lparent.get_line(), "l");
+	}
+	else
+	{
+		lexer.get_next();
+	}
 	lbrace = lexer.get_next();
 	if (lbrace.get_type() != TypeEnum::LBRACE)
 		return lexer.get_pos();
@@ -1726,6 +2332,41 @@ int FunctionDingYi::read_in(Lexer& lexer)
 	rbrace = lexer.get_next();
 	if (rbrace.get_type() != TypeEnum::RBRACE)
 		return lexer.get_pos();
+
+	vector<SentenceReturn* > returns = fu_he.get_all_return();
+	if (return_type == IdentifyType::VOID)
+	{
+		unsigned int i;
+		for (i = 0; i < returns.size(); i++)
+		{
+			if (returns[i]->get_return_type() != return_type)
+			{
+				// Wu Fan Hui Zhi Han Shu Bu Pi Pei
+				ErrorTable::log_error(returns[i]->get_word_line(), "g");
+			}
+		}
+	}
+	else
+	{
+		if (returns.size() == 0)
+		{
+			// You Fan Hui Zhi Han Shu Bu Pi Pei
+			ErrorTable::log_error(rbrace.get_line(), "h");
+		}
+		else
+		{
+			unsigned int i;
+			for (i = 0; i < returns.size(); i++)
+			{
+				if (returns[i]->get_return_type() != return_type)
+				{
+					// You Fan Hui Zhi Han Shu Bu Pi Pei
+					ErrorTable::log_error(returns[i]->get_word_line(), "h");
+				}
+			}
+		}
+	}
+
 	return -1;
 }
 

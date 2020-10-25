@@ -1,6 +1,6 @@
 ﻿//#include <ctype.h>
 #include "Lexer.h"
-//#include "WordInfo.h"
+#include "Error.h"
 //#include "TypeEnum.h"
 #include <iostream>
 
@@ -13,7 +13,7 @@ void Lexer::process_input(string in_file_name)
 		//throw new exception("Input file fail to open\n");
 	}
 	char now;
-	int line_count = 0;
+	int line_count = 1;
 	int pos_count = 0;
 	while (infile.peek() != EOF)
 	{
@@ -163,13 +163,28 @@ void Lexer::process_input(string in_file_name)
 		else if (now == '\'')
 		{
 			now = infile.get();
-			infile.ignore(1);
-			string s;
-			s.clear();
-			s += now;
-			WordInfo now_word(TypeEnum::CHARCON, s, line_count, pos_count);
-			word_list.push_back(now_word);
-			pos_count++;
+
+			if (now != '+' && now != '-'
+				&& now != '*' && now != '/'
+				&& now != '_' && !isalnum(now))
+			{
+				ErrorTable::log_error(line_count, "a");
+				while (now != '\'')
+					now = infile.get();
+				WordInfo now_word(TypeEnum::CHARCON, "Wrong Char", line_count, pos_count);
+				word_list.push_back(now_word);
+				pos_count++;
+			}
+			else
+			{
+				infile.ignore(1);	// ignore '
+				string s;
+				s.clear();
+				s += now;
+				WordInfo now_word(TypeEnum::CHARCON, s, line_count, pos_count);
+				word_list.push_back(now_word);
+				pos_count++;
+			}
 			continue;
 		}
 		// when we are going to read a string
@@ -177,11 +192,24 @@ void Lexer::process_input(string in_file_name)
 		{
 			string s;
 			s.clear();
+			int count = 0;
 			while (infile.peek() != '\"')
 			{
-				s += infile.get();
+				now = infile.get();
+				count++;
+				s += now;
+				if (now != 32 && now != 33 &&
+					(now < 35 || now > 126))
+				{
+					ErrorTable::log_error(line_count, "a");
+				}
 			}
 			infile.ignore(1);
+			if (count == 0)
+			{
+				// Kong Zi Fu
+				ErrorTable::log_error(line_count, "a");
+			}
 			WordInfo now_word(TypeEnum::STRCON, s, line_count, pos_count);
 			word_list.push_back(now_word);
 			pos_count++;
@@ -357,6 +385,7 @@ void Lexer::process_input(string in_file_name)
 				{
 					// wrong handler
 					printf("Unspecified char %c\n", now);
+					ErrorTable::log_error(line_count, "a");
 				}
 			}
 		}

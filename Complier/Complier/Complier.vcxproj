@@ -140,6 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Error.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Tables.h" />
     <ClInclude Include="TypeEnum.h" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Grammar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Error.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="Tables.cpp" />
     <ClCompile Include="WordInfo.cpp" />
@@ -154,6 +156,7 @@
     <ClCompile Include="Grammar.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="error.txt" />
     <Text Include="output.txt" />
     <Text Include="output_lexer.txt" />
     <Text Include="testfile.txt" />

@@ -68,6 +68,10 @@ public:
 	{
 		return word_pos;
 	}
+	int get_number()
+	{
+		return stoi(wu_fu_hao_shu.get_string());
+	}
 	string to_string();
 };
 
@@ -139,6 +143,13 @@ public:
 	{
 		return word_pos;
 	}
+	IdentifyType get_type()
+	{
+		if (type == 1)
+			return IdentifyType::INT;
+		else
+			return IdentifyType::CHAR;
+	}
 	string to_string();
 };
 
@@ -161,6 +172,8 @@ private:
 	vector<WordInfo> initial;
 	vector<WuFuHaoShu> zheng_shu_s;
 	vector<ChangLiang> chang_liang_s;
+	void add_to_table();
+	bool check_initial();
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
@@ -199,6 +212,10 @@ public:
 	{
 		return word_pos;
 	}
+	WordInfo get_id()
+	{
+		return id;
+	}
 	string to_string();
 };
 
@@ -224,6 +241,7 @@ public:
 	{
 		return word_pos;
 	}
+	IdentifyType check_type();
 	string to_string();
 };
 
@@ -240,6 +258,7 @@ public:
 	{
 		return word_pos;
 	}
+	IdentifyType check_type();
 	string to_string();
 };
 
@@ -257,6 +276,7 @@ public:
 	{
 		return word_pos;
 	}
+	IdentifyType check_type();
 	string to_string();
 };
 
@@ -265,13 +285,32 @@ class ParameterTable
 {
 private:
 	int word_pos = 0;
+	int count = 0;
 	bool is_empty = true;
 	vector<WordInfo> items;
+	vector<WordInfo> types;
+	vector<WordInfo> ids;
 public:
 	int read_in(Lexer& lexer);
 	int get_word_pos()
 	{
 		return word_pos;
+	}
+	bool check_empty()
+	{
+		return is_empty;
+	}
+	vector<WordInfo> get_types()
+	{
+		return types;
+	}
+	vector<WordInfo> get_ids()
+	{
+		return ids;
+	}
+	int get_count()
+	{
+		return count;
 	}
 	string to_string();
 };
@@ -292,6 +331,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -354,6 +394,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
  
@@ -391,6 +432,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -434,6 +476,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -447,11 +490,12 @@ private:
 	ChangLiang chang_liang;
 	Sentence* sentence = NULL;
 public:
-	int read_in(Lexer& lexer);
+	int read_in(Lexer& lexer, IdentifyType target);
 	int get_word_pos()
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -469,6 +513,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -479,11 +524,12 @@ private:
 	int word_pos = 0;
 	vector<ConditionCase> cases;
 public:
-	int read_in(Lexer& lexer);
+	int read_in(Lexer& lexer, IdentifyType target);
 	int get_word_pos()
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -502,6 +548,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -517,6 +564,10 @@ public:
 	int get_word_pos()
 	{
 		return word_pos;
+	}
+	vector<Expression> get_expressions()
+	{
+		return expressions;
 	}
 	string to_string();
 };
@@ -537,6 +588,10 @@ public:
 	{
 		return word_pos;
 	}
+	WordInfo* get_func_id()
+	{
+		return &(items[0]);
+	}
 	string to_string();
 };
 
@@ -556,6 +611,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -574,6 +630,22 @@ public:
 	{
 		return word_pos;
 	}
+	int get_word_line()
+	{
+		return items[0].get_line();
+	}
+	IdentifyType get_return_type()
+	{
+		if (type == 0)
+			return IdentifyType::NONE;
+		if (type == 2)
+			return IdentifyType::VOID;
+		else
+		{
+			return expression.check_type();
+		}
+	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -589,6 +661,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -617,6 +690,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
@@ -632,6 +706,7 @@ public:
 	{
 		return word_pos;
 	}
+	vector<SentenceReturn* > get_all_return();
 	string to_string();
 };
 
