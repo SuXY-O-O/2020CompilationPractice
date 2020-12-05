@@ -1,4 +1,5 @@
 ﻿#include "WordInfo.h"
+#include <algorithm>
 //#include "TypeEnum.h"
 //#include<string>
 
@@ -15,6 +16,13 @@ TypeEnum WordInfo::get_type()
 string WordInfo::get_string()
 {
 	return this->input;
+}
+
+string WordInfo::get_string_in_low()
+{
+	string to_low = input;
+	transform(to_low.begin(), to_low.end(), to_low.begin(), ::tolower);
+	return to_low;
 }
 
 int WordInfo::get_line()

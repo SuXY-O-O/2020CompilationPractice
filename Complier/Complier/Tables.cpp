@@ -132,7 +132,7 @@ bool IdentifyBlock::have_identity(string name)
 
 bool IdentifyBlock::check_func_para_num(WordInfo* func_id, ParameterValue* values)
 {
-	string to_low = func_id->get_string();;
+	string to_low = func_id->get_string();
 	transform(to_low.begin(), to_low.end(), to_low.begin(), ::tolower);
 	unsigned int i;
 	for (i = 0; i < ids.size(); i++)

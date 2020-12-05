@@ -140,8 +140,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="MiddleTable.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="Lexer.h" />
+    <ClInclude Include="MiddleCode.h" />
+    <ClInclude Include="Mips.h" />
     <ClInclude Include="Tables.h" />
     <ClInclude Include="TypeEnum.h" />
     <ClInclude Include="WordInfo.h" />
@@ -150,6 +153,9 @@
   <ItemGroup>
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="Lexer.cpp" />
+    <ClCompile Include="MiddleCode.cpp" />
+    <ClCompile Include="MiddleTable.cpp" />
+    <ClCompile Include="Mips.cpp" />
     <ClCompile Include="Tables.cpp" />
     <ClCompile Include="WordInfo.cpp" />
     <ClCompile Include="main.cpp" />
@@ -157,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="error.txt" />
+    <Text Include="mips.txt" />
     <Text Include="output.txt" />
     <Text Include="output_lexer.txt" />
     <Text Include="testfile.txt" />

@@ -30,6 +30,7 @@ public:
 	void set_string(string in);
 	TypeEnum get_type();
 	string get_string();
+	string get_string_in_low();
 	int get_line();
 	static string type_to_string(TypeEnum t);
 	string to_string();

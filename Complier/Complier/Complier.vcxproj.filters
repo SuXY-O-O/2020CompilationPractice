@@ -33,6 +33,15 @@
     <ClInclude Include="Error.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MiddleCode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MiddleTable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mips.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WordInfo.cpp">
@@ -53,6 +62,15 @@
     <ClCompile Include="Error.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="MiddleCode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MiddleTable.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Mips.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="output.txt">
@@ -65,6 +83,9 @@
       <Filter>资源文件</Filter>
     </Text>
     <Text Include="error.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="mips.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>

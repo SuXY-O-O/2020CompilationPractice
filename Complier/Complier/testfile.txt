@@ -1,20 +1,6 @@
-const int const1 = 1, const2 = -100;
-const char const3 = 'a';
-int change1;
-char change3;
-char gets1(int var1,int var2){
-   change1 = var1 + var2;
-   if (1 == 1)
-   {
-		return ();
-   }
-}
+int test;
 void main(){
-   change1 = 10;
-   if (gets1(1, 1) == 1)
-   {
-		return ('a');
-   }
-   printf("Hello World");
-   printf(gets1(10, 20));
+    printf("Hello World");
+    scanf(test);
+    printf(test);
 }

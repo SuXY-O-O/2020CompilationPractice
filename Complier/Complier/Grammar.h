@@ -2,6 +2,7 @@
 //#include"WordInfo.h"
 #include"Lexer.h"
 #include"Tables.h"
+#include"MiddleTable.h"
 
 //
 class BuChang;
@@ -19,6 +20,8 @@ class Grammar;
 class Item;
 class ParameterTable;
 class ParameterValue;
+class BasicSentence 
+{ virtual    void    dosomething() {} };
 class Sentence;
 class SentenceDiaoYong;
 class SentenceFuHe;
@@ -52,6 +55,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	string get_input_string();
 };
 
 // <无符号整数> ::= <数字>{<数字>}
@@ -90,6 +94,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	int get_number();
 };
 
 // <常量定义> ::= int<标识符>＝<整数>{,<标识符>＝<整数>} | char<标识符>＝<字符>{,<标识符>＝<字符> }
@@ -109,6 +114,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	void add_to_middle_table(ConstTable* table);
 };
 
 // <常量说明> ::= const<常量定义>;{const<常量定义>;}
@@ -126,6 +132,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	void add_to_middle_table(ConstTable* table);
 };
 
 // <常量> ::= <整数>|<字符>
@@ -151,6 +158,8 @@ public:
 			return IdentifyType::CHAR;
 	}
 	string to_string();
+	char get_char();
+	int get_number();
 };
 
 // <变量定义> ::= <变量定义无初始化>|<变量定义及初始化>	
@@ -181,6 +190,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	vector<MiddleSentence> add_to_middle_table(VarTable* table);
 };
 
 // <变量说明>  ::= <变量定义>;{<变量定义>;} 
@@ -197,6 +207,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	vector<MiddleSentence> add_to_middle_table(VarTable* table);
 };
 
 // <声明头部>   ::=  int<标识符> |char<标识符> 
@@ -243,6 +254,7 @@ public:
 	}
 	IdentifyType check_type();
 	string to_string();
+	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
 };
 
 // <项> ::= <因子>{<乘法运算符><因子>} 
@@ -260,6 +272,7 @@ public:
 	}
 	IdentifyType check_type();
 	string to_string();
+	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
 };
 
 // <表达式> ::= [+|-]<项>{<加法运算符><项>} 
@@ -278,6 +291,7 @@ public:
 	}
 	IdentifyType check_type();
 	string to_string();
+	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
 };
 
 // <参数表> ::= <类型标识符><标识符>{,<类型标识符><标识符>} | <空>
@@ -333,6 +347,19 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	int get_type()
+	{
+		return type;
+	}
+	ConstShuoMing get_consts()
+	{
+		return consts;
+	}
+	VariableShuoMing get_vars()
+	{
+		return vars;
+	}
+	vector<Sentence> get_sentence();
 };
 
 // <有返回值函数定义>  ::=  <声明头部>'('<参数表>')' '{'<复合语句>'}'
@@ -379,10 +406,14 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	SentenceFuHe get_sentence()
+	{
+		return fu_he;
+	}
 };
 
 // <赋值语句> ::= <标识符>＝<表达式> | <标识符>'['<表达式>']'=<表达式> | <标识符>'['<表达式>']''['<表达式>']'=<表达式>
-class SentenceFuZhi
+class SentenceFuZhi : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -396,6 +427,7 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	vector<MiddleSentence> add_to_middle(VarTable& local, VarTable& global);
 };
  
 // <条件> ::=  <表达式><关系运算符><表达式>
@@ -416,7 +448,7 @@ public:
 };
 
 // <条件语句>::= if '('<条件>')'<语句>[else<语句>]
-class SentenceTiaoJian
+class SentenceTiaoJian : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -452,7 +484,7 @@ public:
 };
 
 // <循环语句> ::= while'('<条件>')'<语句> | for'('<标识符>＝<表达式>;<条件>;<标识符>＝<标识符>(+|-)<步长>')'<语句>
-class SentenceXunHuan
+class SentenceXunHuan : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -534,7 +566,7 @@ public:
 };
 
 // <情况语句> ::= switch'('<表达式>')''{'<情况表><缺省>'}' 
-class SentenceQingKuang
+class SentenceQingKuang : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -574,7 +606,7 @@ public:
 
 // <有返回值函数调用语句> ::= <标识符>'('<值参数表>')' 
 // <无返回值函数调用语句> ::= <标识符>'('<值参数表>')' 
-class SentenceDiaoYong
+class SentenceDiaoYong : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -596,7 +628,7 @@ public:
 };
 
 // <写语句> ::= printf'('<字符串>,<表达式>')' | printf'('<字符串>')' | printf'('<表达式>')' 
-class SentencePrint
+class SentencePrint : public BasicSentence
 {
 private:
 	//0: none; 1: string and expression; 2: string only; 3: expression only
@@ -613,10 +645,11 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	vector<MiddleSentence> add_to_middle(StringTable& table, VarTable& local, VarTable& global);
 };
 
 // <返回语句> ::=  return['('<表达式>')']
-class SentenceReturn
+class SentenceReturn : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -650,7 +683,7 @@ public:
 };
 
 // <读语句> ::= scanf'('<标识符>')' 
-class SentenceRead
+class SentenceRead : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -663,6 +696,7 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	vector<MiddleSentence> add_to_middle(VarTable* local, VarTable* global);
 };
 
 // <语句> ::= <循环语句> | <条件语句> | <有返回值函数调用语句>; | <无返回值函数调用语句>; ｜ <赋值语句>; 
@@ -691,11 +725,16 @@ public:
 		return word_pos;
 	}
 	vector<SentenceReturn* > get_all_return();
+	int get_type()
+	{
+		return type;
+	};
+	BasicSentence* get_sentence();
 	string to_string();
 };
 
 // <语句列> ::= {<语句>}
-class SentenceLie
+class SentenceLie : public BasicSentence
 {
 private:
 	int word_pos = 0;
@@ -708,6 +747,10 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	vector<Sentence> get_all_sentence()
+	{
+		return sentences;
+	}
 };
 
 
@@ -724,4 +767,24 @@ private:
 public:
 	int read_in(Lexer& lexer);
 	void print_to_file(string out_file_name);
+	int get_type()
+	{
+		return type;
+	}
+	ConstShuoMing get_const()
+	{
+		return consts;
+	}
+	VariableShuoMing get_vars()
+	{
+		return vars;
+	}
+	vector<FunctionDingYi> get_funcs()
+	{
+		return funcs;
+	}
+	FunctionMain get_main()
+	{
+		return main_func;
+	}
 };

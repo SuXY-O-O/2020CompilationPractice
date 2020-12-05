@@ -1,0 +1,50 @@
+.data
+test : .space 4
+_str_1: .asciiz "Hello World"
+
+.text
+addi $29, $29, -4
+sw $30, -4($29)
+move $30, $29
+addi $29, $29, -4
+jal func_main_begin
+addi $29, $29, 4
+lw $30, 0($29)
+addi $29, $29, 4
+li $v0, 10
+syscall
+
+func_main_begin:
+sw $31, -4($30)
+addi $29, $29, -4
+sw $4, 0($29)
+addi $29, $29, 0
+
+la $4, _str_1
+move $4, $4
+li $v0, 4
+syscall
+li $4, 10
+move $4, $4
+li $v0, 11
+syscall
+li $v0, 5
+syscall
+move $8, $2
+sw $8, test
+la $4, test
+lw $4, 0($4)
+move $4, $4
+li $v0, 1
+syscall
+li $4, 10
+move $4, $4
+li $v0, 11
+syscall
+
+addi $29, $29, 0
+lw $4, 0($29)
+addi $29, $29, 4
+lw $31, -4($30)
+jr $ra
+func_main_end:
