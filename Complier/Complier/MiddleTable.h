@@ -3,27 +3,48 @@
 #include <vector>
 using namespace std;
 
+class MiddleCode;
 enum class ArgType
 {
 	NONE,
 	INT,
 	CHAR,
-	IDENTIFY
+	IDENTIFY,
+	ARRAY
 };
 
 enum class Operation
 {
 	ADD,
+	ADDI,
 	SUB,
+	SUBI,
 	MULT,
+	MULI,
 	DIV,
+	DIVI,
 	NEG,
 	ASSIGN,
+	INIT,			//initial var
 	P_STR,
 	P_CHAR,
 	P_INT,
 	S_INT,
-	S_CHAR
+	S_CHAR,
+	START_FUNC,
+	SAVE_PARA,
+	JAL,
+	JUMP,
+	LOAD_RET,
+	SAVE_RET,
+	BEQI,			// equal to int
+	BEQ,			// equal to
+	BNE,			// not equal to
+	BGE,			// bigger or equal
+	BGT,			// bigger than
+	BLE,			// less or equal
+	BLT,			// less than
+	LABEL
 };
 
 class Arg
@@ -33,32 +54,33 @@ private :
 	int value_int;
 	char value_char;
 	string identify;
-	int d1;
-	int d2;
+	Arg* offset;
 	int target_reg = 0;
 	bool need_stack = true;
 public :
 	Arg(ArgType t, int value) : type(t), value_int(value)
 	{
 		value_char = 0;
-		d1 = d2 = 0;
+		offset = NULL;
 	};
 	Arg(ArgType t, char value) : type(t), value_char(value)
 	{
 		value_int = 0;
-		d1 = d2 = 0;
+		offset = NULL;
 	};
-	Arg(ArgType t, string id, int _d1, int _d2) : 
-		type(t), identify(id), d1(_d1), d2(_d2)
+	Arg(ArgType t, string id) : type(t), identify(id)
 	{
 		value_char = 0;
 		value_int = 0;
+		offset = NULL;
 	};
+	Arg(ArgType t, string id, Arg* _offset);
 	Arg()
 	{
 		type = ArgType::NONE;
-		value_int = d1 = d2 = 0;
+		value_int = 0;
 		value_char = 0;
+		offset = NULL;
 	};
 	ArgType get_type()
 	{
@@ -80,11 +102,20 @@ public :
 	{
 		return identify;
 	}
+	Arg* get_offset()
+	{
+		return offset;
+	}
 	string to_string();
 	void set_target_reg(int reg, bool n_s)
 	{
 		target_reg = reg;
 		need_stack = n_s;
+	}
+	bool operator==(const Arg& a);
+	bool check_need_to_stack()
+	{
+		return need_stack;
 	}
 };
 
@@ -145,6 +176,7 @@ private:
 	vector<VarInfo*> vars;
 	int tmp_count = 0;
 	int total_stack_size = 0;
+	int para_stack_size = 0;
 public:
 	VarTable()
 	{
@@ -159,6 +191,10 @@ public:
 	int get_stack_size()
 	{
 		return total_stack_size;
+	}
+	int get_para_size()
+	{
+		return para_stack_size;
 	}
 };
 
@@ -183,18 +219,30 @@ private:
 	string load_arg_to_reg
 		(Arg arg, ConstTable* l_const, ConstTable* g_const, 
 		VarTable* l_var, VarTable* g_var);
-	string save_to_stack(Arg arg, VarTable* l_var, VarTable* g_var);
+	string save_to_stack
+		(Arg arg, ConstTable* l_const, ConstTable* g_const, 
+		VarTable* l_var, VarTable* g_var);
 public:
 	MiddleSentence(Operation o, Arg* a1, Arg* a2, Arg* a3) :
 		op(o)
 	{
-		arg1 = *a1;
-		arg2 = *a2;
-		out = *a3;
+		if (a1 != NULL)
+			arg1 = *a1;
+		else
+			arg1 = *(new Arg());
+		if (a2 != NULL)
+			arg2 = *a2;
+		else
+			arg2 = *(new Arg());
+		if (a3 != NULL)
+			out = *a3;
+		else
+			out = *(new Arg());
 	};
 	string to_string();
 	string to_mips(ConstTable* l_const, ConstTable* g_const, 
-		VarTable* l_var, VarTable* g_var, StringTable* strings);
+		VarTable* l_var, VarTable* g_var, StringTable* strings,
+		MiddleCode* all_code);
 	Arg* get_arg1()
 	{
 		return &arg1;

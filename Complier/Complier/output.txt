@@ -1,38 +1,107 @@
 INTTK int
-IDENFR test
-<变量定义无初始化>
+IDENFR a
+ASSIGN =
+INTCON 2
+<无符号整数>
+<整数>
+<常量>
+<变量定义及初始化>
 <变量定义>
 SEMICN ;
 <变量说明>
+VOIDTK void
+IDENFR func
+LPARENT (
+RPARENT )
+LBRACE {
+RETURNTK return
+<返回语句>
+SEMICN ;
+<语句>
+<语句列>
+<复合语句>
+RBRACE }
+<无返回值函数定义>
+VOIDTK void
+IDENFR funct
+LPARENT (
+RPARENT )
+LBRACE {
+<语句列>
+<复合语句>
+RBRACE }
+<无返回值函数定义>
 VOIDTK void
 MAINTK main
 LPARENT (
 RPARENT )
 LBRACE {
+INTTK int
+IDENFR zer
+ASSIGN =
+INTCON 0
+<无符号整数>
+<整数>
+<常量>
+<变量定义及初始化>
+<变量定义>
+SEMICN ;
+<变量说明>
 PRINTFTK printf
 LPARENT (
-STRCON Hello World
+STRCON 18231194
 <字符串>
 RPARENT )
 <写语句>
 SEMICN ;
 <语句>
-SCANFTK scanf
+FORTK for
 LPARENT (
-IDENFR test
-RPARENT )
-<读语句>
+IDENFR zer
+ASSIGN =
+INTCON 9
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
 SEMICN ;
-<语句>
+IDENFR zer
+<因子>
+<项>
+<表达式>
+GRE >
+INTCON 0
+<无符号整数>
+<整数>
+<因子>
+<项>
+<表达式>
+<条件>
+SEMICN ;
+IDENFR zer
+ASSIGN =
+IDENFR zer
+MINU -
+INTCON 1
+<无符号整数>
+<步长>
+RPARENT )
+LBRACE {
 PRINTFTK printf
 LPARENT (
-IDENFR test
+IDENFR zer
 <因子>
 <项>
 <表达式>
 RPARENT )
 <写语句>
 SEMICN ;
+<语句>
+<语句列>
+RBRACE }
+<语句>
+<循环语句>
 <语句>
 <语句列>
 <复合语句>

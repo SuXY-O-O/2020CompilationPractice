@@ -424,7 +424,7 @@ void Lexer::print_to_file(string out_file_name)
 {
 	ofstream out;
 	out.open(out_file_name);
-	int i;
+	unsigned int i;
 	//out << "begin" << word_list.size() << "\n";
 	for (i = 0; i < word_list.size(); i++)
 	{

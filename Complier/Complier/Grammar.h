@@ -4,6 +4,8 @@
 #include"Tables.h"
 #include"MiddleTable.h"
 
+#include <string>
+
 //
 class BuChang;
 class ChangLiang;
@@ -385,6 +387,9 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	string get_func_name();
+	SentenceFuHe get_sentences();
+	ParameterTable get_para_table();
 };
 
 // <主函数> ::= void main'('')' '{'<复合语句>'}'  
@@ -445,6 +450,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	vector<MiddleSentence> add_to_middle(VarTable& local, VarTable& global, string label);
 };
 
 // <条件语句>::= if '('<条件>')'<语句>[else<语句>]
@@ -466,6 +472,10 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	TiaoJian get_tiao_jian();
+	Sentence* get_s_if();
+	bool check_have_else();
+	Sentence* get_s_else();
 };
 
 // <步长>::= <无符号整数>  
@@ -481,6 +491,7 @@ public:
 		return word_pos;
 	}
 	string to_string();
+	int get_index();
 };
 
 // <循环语句> ::= while'('<条件>')'<语句> | for'('<标识符>＝<表达式>;<条件>;<标识符>＝<标识符>(+|-)<步长>')'<语句>
@@ -495,6 +506,7 @@ private:
 	/*
 	* while:
 	* 0-while	1-(	2-)
+	* 
 	* for:
 	* 0-for		1-(			2-<标识符>	3-=		4-;		5-;		6-<标识符>
 	* 7-=		8-<标识符>	9-(+|-)		10-)
@@ -510,6 +522,12 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	int get_type();
+	int get_bu_chang();
+	Sentence* get_sentence();
+	TiaoJian get_tiao_jian();
+	vector<MiddleSentence> get_for_init(VarTable& local, VarTable& global);
+	vector<MiddleSentence> get_for_update();
 };
 
 // <情况子语句> ::= case<常量>:<语句>
@@ -529,6 +547,8 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	int get_case_num();
+	Sentence* get_sentence();
 };
 
 // <缺省> ::= default:<语句>
@@ -547,6 +567,7 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	Sentence* get_sentence();
 };
 
 // <情况表> ::= <情况子语句>{<情况子语句>}
@@ -563,6 +584,7 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	vector<ConditionCase> get_all_cases();
 };
 
 // <情况语句> ::= switch'('<表达式>')''{'<情况表><缺省>'}' 
@@ -581,6 +603,9 @@ public:
 		return word_pos;
 	}
 	vector<SentenceReturn* > get_all_return();
+	vector<ConditionCase> get_all_cases();
+	ConditionDefault get_default();
+	Expression get_expression();
 	string to_string();
 };
 
@@ -625,6 +650,7 @@ public:
 		return &(items[0]);
 	}
 	string to_string();
+	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
 };
 
 // <写语句> ::= printf'('<字符串>,<表达式>')' | printf'('<字符串>')' | printf'('<表达式>')' 
@@ -680,6 +706,7 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
+	vector<MiddleSentence> add_to_middle(VarTable& local, VarTable& global, string func_name);
 };
 
 // <读语句> ::= scanf'('<标识符>')' 

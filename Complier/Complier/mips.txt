@@ -1,25 +1,60 @@
 .data
-test : .space 4
-_str_1: .asciiz "Hello World"
+a : .space 4
+_str_1: .asciiz "18231194"
 
 .text
-addi $29, $29, -4
+li $0, 2
+sw $0, a
 sw $30, -4($29)
 move $30, $29
 addi $29, $29, -4
 jal func_main_begin
-addi $29, $29, 4
 lw $30, 0($29)
-addi $29, $29, 4
 li $v0, 10
 syscall
 
-func_main_begin:
-sw $31, -4($30)
+func_func_begin:
 addi $29, $29, -4
-sw $4, 0($29)
+sw $31, 0($29)
 addi $29, $29, 0
 
+j func_func_end
+
+func_func_end:
+addi $29, $29, 0
+lw $31, 0($29)
+addi $29, $29, 4
+jr $ra
+
+
+func_funct_begin:
+addi $29, $29, -4
+sw $31, 0($29)
+addi $29, $29, 0
+
+
+func_funct_end:
+addi $29, $29, 0
+lw $31, 0($29)
+addi $29, $29, 4
+jr $ra
+
+
+func_main_begin:
+addi $29, $29, -4
+sw $4, 0($29)
+addi $29, $29, -4
+sw $5, 0($29)
+addi $29, $29, -4
+sw $6, 0($29)
+addi $29, $29, -4
+sw $7, 0($29)
+addi $29, $29, -4
+sw $31, 0($29)
+addi $29, $29, -4
+
+li $4, 0
+sw $4, 0($29)
 la $4, _str_1
 move $4, $4
 li $v0, 4
@@ -28,12 +63,13 @@ li $4, 10
 move $4, $4
 li $v0, 11
 syscall
-li $v0, 5
-syscall
-move $8, $2
-sw $8, test
-la $4, test
-lw $4, 0($4)
+li $5, 9
+move $6, $5
+sw $6, 0($29)
+for_0_begin:
+li $7, 0
+bgt $6, $7, for_0_end
+lw $4, 0($29)
 move $4, $4
 li $v0, 1
 syscall
@@ -41,10 +77,21 @@ li $4, 10
 move $4, $4
 li $v0, 11
 syscall
+subi $6, $6, 1
+sw $6, 0($29)
+for_0_end:
 
-addi $29, $29, 0
+func_main_end:
+addi $29, $29, 4
+lw $31, 0($29)
+addi $29, $29, 4
+lw $7, 0($29)
+addi $29, $29, 4
+lw $6, 0($29)
+addi $29, $29, 4
+lw $5, 0($29)
+addi $29, $29, 4
 lw $4, 0($29)
 addi $29, $29, 4
-lw $31, -4($30)
 jr $ra
-func_main_end:
+

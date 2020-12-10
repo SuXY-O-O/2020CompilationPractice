@@ -81,7 +81,7 @@ void IdentifyBlock::add_paras(ParameterTable* paras)
 	}
 	vector<WordInfo> types = paras->get_types();
 	vector<WordInfo> id_names = paras->get_ids();
-	unsigned int i;
+	int i;
 	for (i = 0; i < paras->get_count(); i++)
 	{
 		IdentifyInfo* this_info;

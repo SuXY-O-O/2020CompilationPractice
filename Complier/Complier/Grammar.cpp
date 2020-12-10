@@ -168,7 +168,7 @@ int ConstDingYi::read_in(Lexer& lexer)
 
 string ConstDingYi::to_string()
 {
-	int i;
+	unsigned int i;
 	WordInfo comma(TypeEnum::COMMA, ",", 0, 0);
 	WordInfo assign(TypeEnum::ASSIGN, "=", 0, 0);
 	string for_return;
@@ -265,7 +265,7 @@ string ConstShuoMing::to_string()
 {
 	string for_return;
 	for_return.clear();
-	int i;
+	unsigned int i;
 	for (i = 0; i < consts.size(); i++)
 	{
 		for_return += consts[i].to_string();
@@ -697,8 +697,8 @@ string VariableDingYi::to_string()
 {
 	string for_return;
 	for_return.clear();
-	int i;
-	int j = 0;
+	unsigned int i;
+	unsigned int j = 0;
 	for (i = 0; i < define.size(); i++)
 	{
 		if (define[i].get_type() == TypeEnum::EMPTY)
@@ -769,18 +769,36 @@ vector<MiddleSentence> VariableDingYi::add_to_middle_table(VarTable* table)
 		table->add_in(info);
 		vector<MiddleSentence> for_return;
 		for_return.clear();
-		// TODO here; Only consider dimension = 0 this time.
 		if (d == 0)
 		{
-			Arg* out = new Arg(ArgType::IDENTIFY, info->name_in_low, 0, 0);
+			Arg* out = new Arg(ArgType::IDENTIFY, info->name_in_low);
 			Arg* arg1;
 			if (info->type == 0)
 				arg1 = new Arg(ArgType::INT, chang_liang_s[0].get_number());
 			else
 				arg1 = new Arg(ArgType::CHAR, chang_liang_s[0].get_char());
-			Arg* arg2 = new Arg();
-			MiddleSentence s(Operation::ASSIGN, arg1, arg2, out);
+			MiddleSentence s(Operation::INIT, arg1, NULL, out);
 			for_return.push_back(s);
+		}
+		else if (d == 1 || d == 2)
+		{
+			unsigned int i = 0;
+			for (i = 0; i < chang_liang_s.size(); i++)
+			{
+				Arg* of = new Arg(ArgType::INT, (int)(i * 4));
+				Arg* arg2 = new Arg(ArgType::ARRAY, info->name_in_low, of);
+				Arg* arg1;
+				if (info->type == 0)
+					arg1 = new Arg(ArgType::INT, chang_liang_s[i].get_number());
+				else
+					arg1 = new Arg(ArgType::CHAR, chang_liang_s[i].get_char());
+				MiddleSentence s(Operation::INIT, arg1, NULL, arg2);
+				for_return.push_back(s);
+			}
+		}
+		else
+		{
+			printf("dimension bigger then 2!\n");
 		}
 		return for_return;
 	}
@@ -883,7 +901,7 @@ string VariableShuoMing::to_string()
 {
 	string for_return;
 	for_return.clear();
-	int i;
+	unsigned int i;
 	for (i = 0; i < ding_yi_s.size(); i++)
 	{
 		for_return += ding_yi_s[i].to_string();
@@ -972,6 +990,28 @@ string SentenceReturn::to_string()
 	for_return += items[2].to_string();
 	for_return += "<返回语句>\n";
 	return for_return;
+}
+
+vector<MiddleSentence> SentenceReturn::add_to_middle(VarTable& local, VarTable& global, string func_name)
+{
+	vector<MiddleSentence> for_return;
+	for_return.clear();
+	if (type == 2)
+	{
+		Arg* label = new Arg(ArgType::IDENTIFY, "func_" + func_name + "_end");
+		MiddleSentence s_jump(Operation::JUMP, label, NULL, NULL);
+		for_return.push_back(s_jump);
+		return for_return;
+	}
+	else
+	{
+		Arg a = expression.add_to_middle(for_return, local, global);
+		MiddleSentence s_save(Operation::SAVE_RET, &a, NULL, NULL);
+		Arg* label = new Arg(ArgType::IDENTIFY, "func_" + func_name + "_end");
+		MiddleSentence s_jump(Operation::JUMP, label, NULL, NULL);
+		for_return.push_back(s_jump);
+		return for_return;
+	}
 }
 
 int SentencePrint::read_in(Lexer& lexer)
@@ -1071,7 +1111,7 @@ vector<MiddleSentence> SentencePrint::add_to_middle(StringTable& table, VarTable
 		info->name_in_low = new_tmp;
 		info->value = zi_fu.get_input_string();
 		table.add_in(info);
-		Arg a(ArgType::IDENTIFY, new_tmp, 0, 0);
+		Arg a(ArgType::IDENTIFY, new_tmp);
 		MiddleSentence s(Operation::P_STR, &a, new Arg(), new Arg());
 		for_return.push_back(s);
 	}
@@ -1141,7 +1181,7 @@ vector<SentenceReturn*> SentenceRead::get_all_return()
 
 string SentenceRead::to_string()
 {
-	int i;
+	unsigned int i;
 	string for_return;
 	for_return.clear();
 	for (i = 0; i < items.size(); i++)
@@ -1162,7 +1202,7 @@ vector<MiddleSentence> SentenceRead::add_to_middle(VarTable* local, VarTable* gl
 		info = local->get_info_by_name(name);
 	else
 		info = global->get_info_by_name(name);
-	Arg out(ArgType::IDENTIFY, name, 0, 0);
+	Arg out(ArgType::IDENTIFY, name);
 	if (info->type == 0)
 	{
 		MiddleSentence s(Operation::S_INT, new Arg(), new Arg(), &out);
@@ -1182,7 +1222,7 @@ int SentenceLie::read_in(Lexer& lexer)
 	int tmp_pos = word_pos;
 	Sentence* tmp = new Sentence;
 	int r = tmp->read_in(lexer);
-	while (r == -1)		//TODO: check number of sentence
+	while (r == -1)	
 	{
 		tmp_pos = lexer.get_pos();
 		sentences.push_back(*tmp);
@@ -1210,7 +1250,8 @@ string SentenceLie::to_string()
 {
 	string for_return;
 	for_return.clear();
-	for (int i = 0; i < sentences.size(); i++)
+	unsigned int i;
+	for (i = 0; i < sentences.size(); i++)
 		for_return += sentences[i].to_string();
 	for_return += "<语句列>\n";
 	return for_return;
@@ -1255,7 +1296,8 @@ string ParameterValue::to_string()
 {
 	string for_return;
 	for_return.clear();
-	for (int i = 0; i < expressions.size(); i++)
+	unsigned int i;
+	for (i = 0; i < expressions.size(); i++)
 	{
 		for_return += expressions[i].to_string();
 		if (i < commas.size())
@@ -1331,6 +1373,43 @@ string SentenceDiaoYong::to_string()
 	return for_return;
 }
 
+Arg SentenceDiaoYong::add_to_middle
+(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global)
+{
+	Arg* func = new Arg(ArgType::IDENTIFY, items[0].get_string_in_low());
+	MiddleSentence start(Operation::START_FUNC, func, NULL, NULL);
+	sentences.push_back(start);
+	vector<Expression> exps = paras.get_expressions();
+	int i = 0;
+	for (i = exps.size() - 1; i >= 0; i--)
+	{
+		Arg a = exps[i].add_to_middle(sentences, local, global);
+		MiddleSentence a_para(Operation::SAVE_PARA, &a, NULL, NULL);
+		sentences.push_back(a_para);
+	}
+	MiddleSentence jump(Operation::JAL, func, NULL, NULL);
+	sentences.push_back(jump);
+	if (type == 2)
+		return Arg();
+	else
+	{
+		string new_tmp = local.get_new_tmp();
+		while (global.have_name(new_tmp))
+			new_tmp = local.get_new_tmp();
+		VarInfo* tmp_info = new VarInfo();
+		tmp_info->dimenation = 0;
+		tmp_info->have_initial = false;
+		tmp_info->name_in_low = new_tmp;
+		tmp_info->type = 0;
+		tmp_info->size_in_byte = 4;
+		local.add_in(tmp_info);
+		Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp);
+		MiddleSentence ret(Operation::LOAD_RET, tmp, NULL, NULL);
+		sentences.push_back(ret);
+		return *tmp;
+	}
+}
+
 int ConditionDefault::read_in(Lexer& lexer)
 {
 	sentence = new Sentence;
@@ -1367,6 +1446,11 @@ string ConditionDefault::to_string()
 	for_return += sentence->to_string();
 	for_return += "<缺省>\n";
 	return for_return;
+}
+
+Sentence* ConditionDefault::get_sentence()
+{
+	return sentence;
 }
 
 int ConditionCase::read_in(Lexer& lexer, IdentifyType target)
@@ -1408,6 +1492,23 @@ string ConditionCase::to_string()
 	return for_return;
 }
 
+int ConditionCase::get_case_num()
+{
+	if (chang_liang.get_type() == IdentifyType::INT)
+	{
+		return chang_liang.get_number();
+	}
+	else
+	{
+		return chang_liang.get_char();
+	}
+}
+
+Sentence* ConditionCase::get_sentence()
+{
+	return sentence;
+}
+
 int ConditionTable::read_in(Lexer& lexer, IdentifyType target)
 {
 	word_pos = lexer.get_pos();
@@ -1443,12 +1544,18 @@ string ConditionTable::to_string()
 {
 	string for_return;
 	for_return.clear();
-	for (int i = 0; i < cases.size(); i++)
+	unsigned int i;
+	for (i = 0; i < cases.size(); i++)
 	{
 		for_return += cases[i].to_string();
 	}
 	for_return += "<情况表>\n";
 	return for_return;
+}
+
+vector<ConditionCase> ConditionTable::get_all_cases()
+{
+	return cases;
 }
 
 int SentenceQingKuang::read_in(Lexer& lexer)
@@ -1504,6 +1611,21 @@ vector<SentenceReturn*> SentenceQingKuang::get_all_return()
 	return for_return;
 }
 
+vector<ConditionCase> SentenceQingKuang::get_all_cases()
+{
+	return table.get_all_cases();
+}
+
+ConditionDefault SentenceQingKuang::get_default()
+{
+	return def;
+}
+
+Expression SentenceQingKuang::get_expression()
+{
+	return expression;
+}
+
 string SentenceQingKuang::to_string()
 {
 	string for_return;
@@ -1529,6 +1651,11 @@ int BuChang::read_in(Lexer& lexer)
 string BuChang::to_string()
 {
 	return zheng_shu.to_string() + "<步长>\n";
+}
+
+int BuChang::get_index()
+{
+	return zheng_shu.get_number();
 }
 
 int SentenceXunHuan::read_in(Lexer& lexer)
@@ -1695,6 +1822,57 @@ string SentenceXunHuan::to_string()
 	return for_return;
 }
 
+int SentenceXunHuan::get_type()
+{
+	return type;
+}
+
+int SentenceXunHuan::get_bu_chang()
+{
+	return bu_chang.get_index();
+}
+
+Sentence* SentenceXunHuan::get_sentence()
+{
+	return sentence;
+}
+
+TiaoJian SentenceXunHuan::get_tiao_jian()
+{
+	return tiao_jian;
+}
+
+vector<MiddleSentence> SentenceXunHuan::get_for_init(VarTable& local, VarTable& global)
+{
+	vector<MiddleSentence> for_return;
+	for_return.clear();
+	Arg e = expression.add_to_middle(for_return, local, global);
+	Arg* target = new Arg(ArgType::IDENTIFY, items[2].get_string_in_low());
+	MiddleSentence assign(Operation::ASSIGN, &e, NULL, target);
+	for_return.push_back(assign);
+	return for_return;
+}
+
+vector<MiddleSentence> SentenceXunHuan::get_for_update()
+{
+	vector<MiddleSentence> for_return;
+	for_return.clear();
+	Arg* index = new Arg(ArgType::INT, (int)bu_chang.get_index());
+	Arg* out = new Arg(ArgType::IDENTIFY, items[6].get_string_in_low());
+	Arg* arg1 = new Arg(ArgType::IDENTIFY, items[8].get_string_in_low());
+	if (items[9].get_type() == TypeEnum::PLUS)
+	{
+		MiddleSentence update(Operation::ADDI, arg1, index, out);
+		for_return.push_back(update);
+	}
+	else
+	{
+		MiddleSentence update(Operation::SUBI, arg1, index, out);
+		for_return.push_back(update);
+	}
+	return for_return;
+}
+
 int TiaoJian::read_in(Lexer& lexer)
 {
 	word_pos = lexer.get_pos();
@@ -1728,6 +1906,55 @@ string TiaoJian::to_string()
 	for_return += relation.to_string();
 	for_return += e_right.to_string();
 	for_return += "<条件>\n";
+	return for_return;
+}
+
+vector<MiddleSentence> TiaoJian::add_to_middle(VarTable& local, VarTable& global, string label)
+{
+	vector<MiddleSentence> for_return;
+	for_return.clear();
+	Arg a1 = e_left.add_to_middle(for_return, local, global);
+	Arg a2 = e_right.add_to_middle(for_return, local, global);
+	Arg* al = new Arg(ArgType::IDENTIFY, label);
+	switch (relation.get_type())
+	{
+		case TypeEnum::EQL:
+		{
+			MiddleSentence jump(Operation::BEQ, &a1, &a2, al);
+			for_return.push_back(jump);
+			break;
+		}
+		case TypeEnum::NEQ:
+		{
+			MiddleSentence jump(Operation::BNE, &a1, &a2, al);
+			for_return.push_back(jump);
+			break;
+		}
+		case TypeEnum::LSS:
+		{
+			MiddleSentence jump(Operation::BLT, &a1, &a2, al);
+			for_return.push_back(jump);
+			break;
+		}
+		case TypeEnum::LEQ:
+		{
+			MiddleSentence jump(Operation::BLE, &a1, &a2, al);
+			for_return.push_back(jump);
+			break;
+		}
+		case TypeEnum::GRE:
+		{
+			MiddleSentence jump(Operation::BGT, &a1, &a2, al);
+			for_return.push_back(jump);
+			break;
+		}
+		case TypeEnum::GEQ:
+		{
+			MiddleSentence jump(Operation::BGE, &a1, &a2, al);
+			for_return.push_back(jump);
+			break;
+		}
+	}
 	return for_return;
 }
 
@@ -1801,6 +2028,26 @@ string SentenceTiaoJian::to_string()
 	}
 	for_return += "<条件语句>\n";
 	return for_return;
+}
+
+TiaoJian SentenceTiaoJian::get_tiao_jian()
+{
+	return tiao_jian;
+}
+
+Sentence* SentenceTiaoJian::get_s_if()
+{
+	return s_if;
+}
+
+bool SentenceTiaoJian::check_have_else()
+{
+	return have_else;
+}
+
+Sentence* SentenceTiaoJian::get_s_else()
+{
+	return s_else;
 }
 
 int SentenceFuZhi::read_in(Lexer& lexer)
@@ -1877,8 +2124,9 @@ string SentenceFuZhi::to_string()
 {
 	string for_return;
 	for_return.clear();
-	int j = 0;
-	for (int i = 0; i < items.size(); i++)
+	unsigned int j = 0;
+	unsigned int i;
+	for (i = 0; i < items.size(); i++)
 	{
 		if (items[i].get_type() != TypeEnum::EMPTY)
 			for_return += items[i].to_string();
@@ -1894,12 +2142,41 @@ string SentenceFuZhi::to_string()
 
 vector<MiddleSentence> SentenceFuZhi::add_to_middle(VarTable& local, VarTable& global)
 {
-	//TODO : dimension = 0 this time
 	vector<MiddleSentence> for_return;
 	for_return.clear();
-	Arg assign = exps[0].add_to_middle(for_return, local, global);
-	Arg target(ArgType::IDENTIFY, items[0].get_string_in_low(), 0, 0);
-	MiddleSentence s(Operation::ASSIGN, &assign, new Arg(), &target);
+	VarInfo* left_var;
+	if (local.have_name(items[0].get_string_in_low()))
+	{
+		left_var = local.get_info_by_name(items[0].get_string_in_low());
+	}
+	else 
+	{
+		left_var = global.get_info_by_name(items[0].get_string_in_low());
+	}
+	int d = left_var->dimenation;
+	Arg* target = NULL;
+	if (d == 0)
+	{
+		target = new Arg(ArgType::IDENTIFY, items[0].get_string_in_low());
+	}
+	else if (d == 1)
+	{
+		Arg offset = exps[0].add_to_middle(for_return, local, global);
+		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), &offset);
+	}
+	else if (d == 2)
+	{
+		Arg d1 = exps[0].add_to_middle(for_return, local, global);
+		Arg* num = new Arg(ArgType::INT, left_var->d1);
+		MiddleSentence s_mult(Operation::MULT, &d1, num, &d1);
+		for_return.push_back(s_mult);
+		Arg d2 = exps[0].add_to_middle(for_return, local, global);
+		MiddleSentence s_add(Operation::ADD, &d1, &d2, &d1);
+		for_return.push_back(s_add);
+		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), &d1);
+	}
+	Arg assign = exps[d].add_to_middle(for_return, local, global);
+	MiddleSentence s(Operation::ASSIGN, &assign, new Arg(), target);
 	for_return.push_back(s);
 	return for_return;
 }
@@ -2266,8 +2543,9 @@ string Factor::to_string()
 			for_return += diao_yong->to_string();
 			break;
 		case 1:
-			int j = 0;
-			for (int i = 0; i < ids.size(); i++)
+			unsigned int j = 0;
+			unsigned int i;
+			for (i = 0; i < ids.size(); i++)
 			{
 				if (ids[i].get_type() == TypeEnum::EMPTY)
 				{
@@ -2299,17 +2577,56 @@ Arg Factor::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, Va
 	}
 	else if (type == 4)
 	{
-		//TODO : no function using this time
+		return diao_yong->add_to_middle(sentences, local, global);
 	}
 	else
 	{
-		//TODO : only dimension = 0 this time
 		if (ids[0].get_type() == TypeEnum::IDENFR)
 		{
-			Arg a(ArgType::IDENTIFY, ids[0].get_string_in_low(), 0, 0);
-			return a;
+			VarInfo* info = NULL;
+			string name = ids[0].get_string_in_low();
+			bool from_local = true;
+			if (local.have_name(name))
+			{
+				info = local.get_info_by_name(name);
+				from_local = true;
+			}
+			else
+			{
+				info = global.get_info_by_name(name);
+				from_local = false;
+			}
+			if (info->dimenation == 0)
+			{
+				Arg a(ArgType::IDENTIFY, name);
+				return a;
+			}
+			else if (info->dimenation == 1)
+			{
+				Arg d1 = exps[0].add_to_middle(sentences, local, global);
+				Arg a(ArgType::ARRAY, name, &d1);
+				return a;
+			}
+			else if (info->dimenation == 2)
+			{
+				Arg d1 = exps[0].add_to_middle(sentences, local, global);
+				Arg* num = new Arg(ArgType::INT, info->d1);
+				MiddleSentence s_mult(Operation::MULT, &d1, num, &d1);
+				sentences.push_back(s_mult);
+				Arg d2 = exps[1].add_to_middle(sentences, local, global);
+				MiddleSentence s_add(Operation::ADD, &d1, &d2, &d1);
+				sentences.push_back(s_add);
+				Arg a(ArgType::ARRAY, name, &d1);
+				return a;
+			}
+			else
+			{
+				printf("Dimension bigger then 2!");
+				Arg a(ArgType::NONE, '\0');
+				return a;
+			}
 		}
-		else
+		else //format as "(exp)"
 		{
 			return exps[0].add_to_middle(sentences, local, global);
 		}
@@ -2350,7 +2667,7 @@ string Item::to_string()
 {
 	string for_return;
 	for_return.clear();
-	for (int i = 0; i < factors.size(); i++)
+	for (unsigned int i = 0; i < factors.size(); i++)
 	{
 		for_return += factors[i].to_string();
 		if (i < signs.size())
@@ -2364,6 +2681,7 @@ Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarT
 {
 	if (signs.size() == 0)
 		return factors[0].add_to_middle(sentences, local, global);
+	/*
 	unsigned int i;
 	Arg last = factors[0].add_to_middle(sentences, local, global);
 	for (i = 0; i < signs.size(); i++)
@@ -2378,7 +2696,7 @@ Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarT
 		tmp_info->type = 0;
 		tmp_info->size_in_byte = 4;
 		local.add_in(tmp_info);
-		Arg out(ArgType::IDENTIFY, new_tmp, 0, 0);
+		Arg out(ArgType::IDENTIFY, new_tmp);
 		Arg a2 = factors[i + 1].add_to_middle(sentences, local, global);
 		if (signs[i].get_type() == TypeEnum::MULT)
 		{
@@ -2392,7 +2710,91 @@ Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarT
 		}
 		last = out;
 	}
-	return last;
+	*/
+	string new_tmp = local.get_new_tmp();
+	while (global.have_name(new_tmp))
+		new_tmp = local.get_new_tmp();
+	VarInfo* tmp_info = new VarInfo();
+	tmp_info->dimenation = 0;
+	tmp_info->have_initial = false;
+	tmp_info->name_in_low = new_tmp;
+	tmp_info->type = 0;
+	tmp_info->size_in_byte = 4;
+	local.add_in(tmp_info);
+	Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+	Arg fac0 = factors[0].add_to_middle(sentences, local, global);
+	Arg fac1 = factors[1].add_to_middle(sentences, local, global);
+	if (fac1.get_type() == ArgType::CHAR || fac1.get_type() == ArgType::INT)
+	{
+		if (signs[0].get_type() == TypeEnum::MULT)
+		{
+			MiddleSentence s(Operation::MULI, &fac0, &fac1, out);
+			sentences.push_back(s);
+		}
+		else
+		{
+			MiddleSentence s(Operation::DIVI, &fac0, &fac1, out);
+			sentences.push_back(s);
+		}
+	}
+	else if (fac0.get_type() == ArgType::CHAR || fac0.get_type() == ArgType::INT)
+	{
+		if (signs[0].get_type() == TypeEnum::MULT)
+		{
+			MiddleSentence s(Operation::MULI, &fac1, &fac0, out);
+			sentences.push_back(s);
+		}
+		else
+		{
+			MiddleSentence s(Operation::DIV, &fac1, &fac0, out);
+			sentences.push_back(s);
+		}
+	}
+	else
+	{
+		if (signs[0].get_type() == TypeEnum::MULT)
+		{
+			MiddleSentence s(Operation::MULT, &fac0, &fac1, out);
+			sentences.push_back(s);
+		}
+		else
+		{
+			MiddleSentence s(Operation::DIV, &fac0, &fac1, out);
+			sentences.push_back(s);
+		}
+	}
+	unsigned int i;
+	for (i = 1; i < signs.size(); i++)
+	{
+		Arg fac2 = factors[i + 1].add_to_middle(sentences, local, global);
+		if (fac2.get_type() == ArgType::CHAR || fac2.get_type() == ArgType::INT)
+		{
+			if (signs[i].get_type() == TypeEnum::MULT)
+			{
+				MiddleSentence s(Operation::MULI, out, &fac2, out);
+				sentences.push_back(s);
+			}
+			else
+			{
+				MiddleSentence s(Operation::DIVI, out, &fac2, out);
+				sentences.push_back(s);
+			}
+		}
+		else
+		{
+			if (signs[i].get_type() == TypeEnum::MULT)
+			{
+				MiddleSentence s(Operation::MULT, out, &fac2, out);
+				sentences.push_back(s);
+			}
+			else
+			{
+				MiddleSentence s(Operation::DIV, out, &fac2, out);
+				sentences.push_back(s);
+			}
+		}
+	}
+	return *out;
 }
 
 int Expression::read_in(Lexer& lexer)
@@ -2437,8 +2839,8 @@ string Expression::to_string()
 {
 	string for_return;
 	for_return.clear();
-	int i_sign = 0;
-	int i_item = 0;
+	unsigned int i_sign = 0;
+	unsigned int i_item = 0;
 	if (have_pre_sign)
 	{
 		for_return += signs[0].to_string();
@@ -2459,7 +2861,7 @@ string Expression::to_string()
 
 Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global)
 {
-	Arg last = items[0].add_to_middle(sentences, local, global);
+	Arg arg1 = items[0].add_to_middle(sentences, local, global);
 	unsigned int i_sign = 0;
 	unsigned int i_item = 1;
 	if (have_pre_sign && signs[0].get_type() == TypeEnum::MINU)
@@ -2475,13 +2877,98 @@ Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local
 		tmp_info->type = 0;
 		tmp_info->size_in_byte = 4;
 		local.add_in(tmp_info);
-		Arg out(ArgType::IDENTIFY, new_tmp, 0, 0);
-		MiddleSentence s(Operation::NEG, &last, new Arg(), &out);
+		Arg out(ArgType::IDENTIFY, new_tmp);
+		MiddleSentence s(Operation::NEG, &arg1, new Arg(), &out);
 		sentences.push_back(s);
-		last = out;
+		arg1 = out;
 	}
 	if (items.size() == 1)
-		return last;
+		return arg1;
+	string new_tmp = local.get_new_tmp();
+	while (global.have_name(new_tmp))
+		new_tmp = local.get_new_tmp();
+	VarInfo* tmp_info = new VarInfo();
+	tmp_info->dimenation = 0;
+	tmp_info->have_initial = false;
+	tmp_info->name_in_low = new_tmp;
+	tmp_info->type = 0;
+	tmp_info->size_in_byte = 4;
+	local.add_in(tmp_info);
+	Arg tmp(ArgType::IDENTIFY, new_tmp);
+	Arg arg2 = items[i_item].add_to_middle(sentences, local, global);
+	if (arg2.get_type() == ArgType::CHAR || arg2.get_type() == ArgType::INT)
+	{
+		if (signs[0].get_type() == TypeEnum::PLUS)
+		{
+			MiddleSentence s(Operation::ADDI, &arg1, &arg2, &tmp);
+			sentences.push_back(s);
+		}
+		else
+		{
+			MiddleSentence s(Operation::SUBI, &arg1, &arg2, &tmp);
+			sentences.push_back(s);
+		}
+	}
+	else if (arg1.get_type() == ArgType::CHAR || arg1.get_type() == ArgType::INT)
+	{
+		if (signs[0].get_type() == TypeEnum::PLUS)
+		{
+			MiddleSentence s(Operation::ADDI, &arg2, &arg1, &tmp);
+			sentences.push_back(s);
+		}
+		else
+		{
+			MiddleSentence s(Operation::SUB, &arg1, &arg2, &tmp);
+			sentences.push_back(s);
+		}
+	}
+	else
+	{
+		if (signs[0].get_type() == TypeEnum::PLUS)
+		{
+			MiddleSentence s(Operation::ADD, &arg1, &arg2, &tmp);
+			sentences.push_back(s);
+		}
+		else
+		{
+			MiddleSentence s(Operation::SUB, &arg1, &arg2, &tmp);
+			sentences.push_back(s);
+		}
+	}
+	i_sign++;
+	i_item++;
+	for (; i_sign < signs.size(); i_sign++)
+	{
+		Arg a2 = items[i_item].add_to_middle(sentences, local, global);
+		i_item++;
+		if (a2.get_type() == ArgType::INT || a2.get_type() == ArgType::CHAR)
+		{
+			if (signs[i_sign].get_type() == TypeEnum::PLUS)
+			{
+				MiddleSentence s(Operation::ADDI, &tmp, &a2, &tmp);
+				sentences.push_back(s);
+			}
+			else
+			{
+				MiddleSentence s(Operation::SUBI, &tmp, &a2, &tmp);
+				sentences.push_back(s);
+			}
+		}
+		else
+		{
+			if (signs[i_sign].get_type() == TypeEnum::PLUS)
+			{
+				MiddleSentence s(Operation::ADD, &tmp, &a2, &tmp);
+				sentences.push_back(s);
+			}
+			else
+			{
+				MiddleSentence s(Operation::SUB, &tmp, &a2, &tmp);
+				sentences.push_back(s);
+			}
+		}
+	}
+	/*
 	for (; i_sign < signs.size(); i_sign++)
 	{
 		string new_tmp = local.get_new_tmp();
@@ -2494,22 +2981,39 @@ Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local
 		tmp_info->type = 0;
 		tmp_info->size_in_byte = 4;
 		local.add_in(tmp_info);
-		Arg out(ArgType::IDENTIFY, new_tmp, 0, 0);
+		Arg out(ArgType::IDENTIFY, new_tmp);
 		Arg a2 = items[i_item].add_to_middle(sentences, local, global);
 		i_item++;
-		if (signs[i_sign].get_type() == TypeEnum::PLUS)
+		if (a2.get_type() == ArgType::INT || a2.get_type() == ArgType::CHAR)
 		{
-			MiddleSentence s(Operation::ADD, &last, &a2, &out);
-			sentences.push_back(s);
+			if (signs[i_sign].get_type() == TypeEnum::PLUS)
+			{
+				MiddleSentence s(Operation::ADDI, &arg1, &a2, &out);
+				sentences.push_back(s);
+			}
+			else
+			{
+				MiddleSentence s(Operation::SUBI, &arg1, &a2, &out);
+				sentences.push_back(s);
+			}
 		}
 		else
 		{
-			MiddleSentence s(Operation::SUB, &last, &a2, &out);
-			sentences.push_back(s);
+			if (signs[i_sign].get_type() == TypeEnum::PLUS)
+			{
+				MiddleSentence s(Operation::ADD, &arg1, &a2, &out);
+				sentences.push_back(s);
+			}
+			else
+			{
+				MiddleSentence s(Operation::SUB, &arg1, &a2, &out);
+				sentences.push_back(s);
+			}
 		}
-		last = out;
+		arg1 = out;
 	}
-	return last;
+	*/
+	return tmp;
 }
 
 int FunctionMain::read_in(Lexer& lexer)
@@ -2600,16 +3104,16 @@ int ParameterTable::read_in(Lexer& lexer)
 		is_empty = true;
 	else
 		is_empty = false;
-	//printf("ids:%d, types:%d\n", ids.size(), types.size());
 	return -1;
-	//TODO : check wrong
 }
 
 string ParameterTable::to_string()
 {
 	string for_return;
 	for_return.clear();
-	unsigned int i;
+	if (is_empty)
+		return for_return;
+	int i;
 	for (i = 0; i < count - 1; i++)
 	{
 		for_return += types[i].to_string();
@@ -2799,6 +3303,21 @@ string FunctionDingYi::to_string()
 	return for_return;
 }
 
+string FunctionDingYi::get_func_name()
+{
+	return id.get_string_in_low();
+}
+
+SentenceFuHe FunctionDingYi::get_sentences()
+{
+	return fu_he;
+}
+
+ParameterTable FunctionDingYi::get_para_table()
+{
+	return table;
+}
+
 int Grammar::read_in(Lexer& lexer)
 {
 	lexer.set_pos(0);
@@ -2856,7 +3375,7 @@ void Grammar::print_to_file(string out_file_name)
 	{
 		out << vars.to_string();
 	}
-	for (int i = 0; i < funcs.size(); i++)
+	for (unsigned int i = 0; i < funcs.size(); i++)
 	{
 		out << funcs[i].to_string();
 	}
