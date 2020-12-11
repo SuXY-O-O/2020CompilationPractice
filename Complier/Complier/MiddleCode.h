@@ -25,7 +25,7 @@ private :
 public :
 	MiddleFunction(string name, ConstTable* gconst, VarTable* gvar);
 	string get_name();
-	void pre_orgnaize_reg();
+	void pre_orgnaize_reg(vector<MiddleSentence> m_sent);
 	void add_func_parameter(ParameterTable table);
 	void read_in_sentences(SentenceFuHe sent, StringTable& strings);
 	string to_mips(StringTable* strings, MiddleCode* all_code);

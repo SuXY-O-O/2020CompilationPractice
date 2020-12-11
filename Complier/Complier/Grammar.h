@@ -256,7 +256,10 @@ public:
 	}
 	IdentifyType check_type();
 	string to_string();
-	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
+	Arg* add_to_middle(
+		vector<MiddleSentence>& sentences, 
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global);
 };
 
 // <项> ::= <因子>{<乘法运算符><因子>} 
@@ -274,7 +277,10 @@ public:
 	}
 	IdentifyType check_type();
 	string to_string();
-	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
+	Arg* add_to_middle(
+		vector<MiddleSentence>& sentences, 
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global);
 };
 
 // <表达式> ::= [+|-]<项>{<加法运算符><项>} 
@@ -293,7 +299,10 @@ public:
 	}
 	IdentifyType check_type();
 	string to_string();
-	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
+	Arg* add_to_middle(
+		vector<MiddleSentence>& sentences, 
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global);
 };
 
 // <参数表> ::= <类型标识符><标识符>{,<类型标识符><标识符>} | <空>
@@ -432,7 +441,9 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
-	vector<MiddleSentence> add_to_middle(VarTable& local, VarTable& global);
+	vector<MiddleSentence> add_to_middle(
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global);
 };
  
 // <条件> ::=  <表达式><关系运算符><表达式>
@@ -450,7 +461,10 @@ public:
 		return word_pos;
 	}
 	string to_string();
-	vector<MiddleSentence> add_to_middle(VarTable& local, VarTable& global, string label);
+	vector<MiddleSentence> add_to_middle(
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global, 
+		string label);
 };
 
 // <条件语句>::= if '('<条件>')'<语句>[else<语句>]
@@ -526,7 +540,9 @@ public:
 	int get_bu_chang();
 	Sentence* get_sentence();
 	TiaoJian get_tiao_jian();
-	vector<MiddleSentence> get_for_init(VarTable& local, VarTable& global);
+	vector<MiddleSentence> get_for_init(
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global);
 	vector<MiddleSentence> get_for_update();
 };
 
@@ -650,7 +666,9 @@ public:
 		return &(items[0]);
 	}
 	string to_string();
-	Arg add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global);
+	Arg* add_to_middle(vector<MiddleSentence>& sentences, 
+		ConstTable* c_local, ConstTable* c_global,
+		VarTable& local, VarTable& global);
 };
 
 // <写语句> ::= printf'('<字符串>,<表达式>')' | printf'('<字符串>')' | printf'('<表达式>')' 
@@ -671,7 +689,10 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
-	vector<MiddleSentence> add_to_middle(StringTable& table, VarTable& local, VarTable& global);
+	vector<MiddleSentence> add_to_middle
+		(StringTable& table, 
+		VarTable& local, VarTable& global,
+		ConstTable* c_local, ConstTable* c_global);
 };
 
 // <返回语句> ::=  return['('<表达式>')']
@@ -706,7 +727,10 @@ public:
 	}
 	vector<SentenceReturn* > get_all_return();
 	string to_string();
-	vector<MiddleSentence> add_to_middle(VarTable& local, VarTable& global, string func_name);
+	vector<MiddleSentence> add_to_middle
+		(VarTable& local, VarTable& global, 
+		ConstTable* c_local, ConstTable* c_global,
+		string func_name);
 };
 
 // <读语句> ::= scanf'('<标识符>')' 

@@ -18,7 +18,8 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 					MiddleSentence while_begin(Operation::LABEL, new Arg(ArgType::IDENTIFY, while_label + "_begin"), NULL, NULL);
 					m_sentences.push_back(while_begin);
 					//
-					vector<MiddleSentence> tmp = x->get_tiao_jian().add_to_middle(*local_var, *global_var, while_label + "_end");
+					vector<MiddleSentence> tmp = x->get_tiao_jian().add_to_middle(
+						*local_var, *global_var, local_const, global_const, while_label + "_end");
 					m_sentences.insert(m_sentences.end(), tmp.begin(), tmp.end());
 					//
 					vector<Sentence> while_sents;
@@ -36,13 +37,14 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 				{
 					string for_label = jump_label::get_for_label();
 					//
-					vector<MiddleSentence> tmp = x->get_for_init(*local_var, *global_var);
+					vector<MiddleSentence> tmp = x->get_for_init(*local_var, *global_var, local_const, global_const);
 					m_sentences.insert(m_sentences.end(), tmp.begin(), tmp.end());
 					//
 					MiddleSentence for_begin(Operation::LABEL, new Arg(ArgType::IDENTIFY, for_label + "_begin"), NULL, NULL);
 					m_sentences.push_back(for_begin);
 					//
-					tmp = x->get_tiao_jian().add_to_middle(*local_var, *global_var, for_label + "_end");
+					tmp = x->get_tiao_jian().add_to_middle(
+						*local_var, *global_var, local_const, global_const, for_label + "_end");
 					m_sentences.insert(m_sentences.end(), tmp.begin(), tmp.end());
 					//
 					vector<Sentence> for_sents;
@@ -52,6 +54,9 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 					//
 					tmp = x->get_for_update();
 					m_sentences.insert(m_sentences.end(), tmp.begin(), tmp.end());
+					//
+					MiddleSentence jump_back(Operation::JUMP, new Arg(ArgType::IDENTIFY, for_label + "_begin"), NULL, NULL);
+					m_sentences.push_back(jump_back);
 					//
 					MiddleSentence for_end(Operation::LABEL, new Arg(ArgType::IDENTIFY, for_label + "_end"), NULL, NULL);
 					m_sentences.push_back(for_end);
@@ -69,12 +74,14 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 				bool have_else = t->check_have_else();
 				if (have_else)
 				{
-					vector<MiddleSentence> tmp = t->get_tiao_jian().add_to_middle(*local_var, *global_var, if_label + "_else");
+					vector<MiddleSentence> tmp = t->get_tiao_jian().add_to_middle(
+						*local_var, *global_var, local_const, global_const, if_label + "_else");
 					m_sentences.insert(m_sentences.end(), tmp.begin(), tmp.end());
 				}
 				else
 				{
-					vector<MiddleSentence> tmp = t->get_tiao_jian().add_to_middle(*local_var, *global_var, if_label + "_end");
+					vector<MiddleSentence> tmp = t->get_tiao_jian().add_to_middle(
+						*local_var, *global_var, local_const, global_const, if_label + "_end");
 					m_sentences.insert(m_sentences.end(), tmp.begin(), tmp.end());
 				}
 				//
@@ -104,13 +111,13 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 			case 3:		//diao yong
 			{
 				SentenceDiaoYong* d = dynamic_cast<SentenceDiaoYong*>(sent[i].get_sentence());
-				d->add_to_middle(m_sentences, *local_var, *global_var);
+				d->add_to_middle(m_sentences, local_const, global_const, *local_var, *global_var);
 				break;
 			}
 			case 4:		//fu zhi
 			{
 				SentenceFuZhi* f = dynamic_cast<SentenceFuZhi*>(sent[i].get_sentence());
-				vector<MiddleSentence> m = f->add_to_middle(*local_var, *global_var);
+				vector<MiddleSentence> m = f->add_to_middle(*local_var, *global_var, local_const, global_const);
 				m_sentences.insert(m_sentences.end(), m.begin(), m.end());
 				break;
 			}
@@ -124,14 +131,15 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 			case 6:		//print
 			{
 				SentencePrint* p = dynamic_cast<SentencePrint*>(sent[i].get_sentence());
-				vector<MiddleSentence> m = p->add_to_middle(strings, *local_var, *global_var);
+				vector<MiddleSentence> m = p->add_to_middle(strings, *local_var, *global_var, local_const, global_const);
 				m_sentences.insert(m_sentences.end(), m.begin(), m.end());
 				break;
 			}
 			case 7:		//fan hui
 			{
 				SentenceReturn* r = dynamic_cast<SentenceReturn*>(sent[i].get_sentence());
-				vector<MiddleSentence> m = r->add_to_middle(*local_var, *global_var, this->get_name());
+				vector<MiddleSentence> m = r->add_to_middle(
+					*local_var, *global_var, local_const, global_const, this->get_name());
 				m_sentences.insert(m_sentences.end(), m.begin(), m.end());
 				break;
 			}
@@ -140,14 +148,14 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 				SentenceQingKuang* q = dynamic_cast<SentenceQingKuang*>(sent[i].get_sentence());
 				string switch_label = jump_label::get_switch_label();
 				//
-				Arg compare = q->get_expression().add_to_middle(m_sentences, *local_var, *global_var);
+				Arg* compare = q->get_expression().add_to_middle(m_sentences, *local_var, *global_var, local_const, global_const);
 				vector<ConditionCase> cases = q->get_all_cases();
 				unsigned int i;
 				for (i = 0; i < cases.size(); i++)
 				{
 					Arg* chang_shu = new Arg(ArgType::INT, cases[i].get_case_num());
 					Arg* label = new Arg(ArgType::IDENTIFY, switch_label + "_" + std::to_string(i));
-					MiddleSentence beq(Operation::BEQI, &compare, chang_shu, label);
+					MiddleSentence beq(Operation::BEQI, compare, chang_shu, label);
 					m_sentences.push_back(beq);
 				}
 				//
@@ -201,13 +209,21 @@ string MiddleFunction::mips_begin_func()
 	// save $ra
 	// for_return += Mips::sw(31, -4, 30);
 	// save regs
-	unsigned int i;
-	for (i = 0; i < 32; i++)
+	if (this->name_in_low == "main")
 	{
-		if (reg_need_save[i])
+		for_return += Mips::addi(29, 29, -4);	//$sp = $sp - 4
+		for_return += Mips::sw(31, 0, 29);		// store $ra only
+	}
+	else
+	{
+		unsigned int i;
+		for (i = 0; i < 32; i++)
 		{
-			for_return += Mips::addi(29, 29, -4);//$sp = $sp - 4
-			for_return += Mips::sw(i, 0, 29);
+			if (reg_need_save[i])
+			{
+				for_return += Mips::addi(29, 29, -4);//$sp = $sp - 4
+				for_return += Mips::sw(i, 0, 29);
+			}
 		}
 	}
 	// give space to local var
@@ -226,13 +242,20 @@ string MiddleFunction::mips_end_func()
 	// turn $sp back
 	for_return += Mips::addi(29, 29, local_var->get_stack_size());
 	// turn regs back
-	int i;
-	for (i = 31; i >= 0; i--)
+	if (this->name_in_low == "main")
 	{
-		if (reg_need_save[i])
+		for_return += Mips::lw(31, 0, 29);		//turn back $ra only
+	}
+	else
+	{
+		int i;
+		for (i = 31; i >= 0; i--)
 		{
-			for_return += Mips::lw(i, 0, 29);
-			for_return += Mips::addi(29, 29, 4);
+			if (reg_need_save[i])
+			{
+				for_return += Mips::lw(i, 0, 29);
+				for_return += Mips::addi(29, 29, 4);
+			}
 		}
 	}
 	for_return += Mips::jr();
@@ -243,7 +266,7 @@ string MiddleFunction::mips_end_func()
 int MiddleFunction::check_exit_arg(Arg a)
 {
 	unsigned int i;
-	for (i = 4; i <= 25; i++)	//a0-a3, t0-t9, s0-s7
+	for (i = 5; i <= 25; i++)	//a1-a3, t0-t9, s0-s7
 	{
 		if (now_arg[i] == a)
 			return i;
@@ -255,7 +278,7 @@ int MiddleFunction::get_empty_reg()
 {
 	unsigned int fisrt_empty = 0;
 	unsigned int i;
-	for (i = 4; i <= 25; i++)
+	for (i = 5; i <= 25; i++)
 	{
 		if (now_arg[i].get_type() == ArgType::NONE)
 			return i;
@@ -265,8 +288,8 @@ int MiddleFunction::get_empty_reg()
 
 int MiddleFunction::get_chang_reg()
 {
-	int for_return = 4 + reg_count;	//4 ~ 25
-	reg_count = (reg_count + 1) % 22;
+	int for_return = 5 + reg_count;	//5 ~ 25
+	reg_count = (reg_count + 1) % 21;
 	return for_return;
 }
 
@@ -314,22 +337,22 @@ string MiddleFunction::get_name()
 	return name_in_low;
 }
 
-void MiddleFunction::pre_orgnaize_reg()
+void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
 {
 	local_var->count_arg_stack();
 	unsigned int i;
-	for (i = 0; i < m_sentences.size(); i++)
+	for (i = 0; i < m_sent.size(); i++)
 	{
-		switch (m_sentences[i].get_operation())
+		switch (m_sent[i].get_operation())
 		{
 			case Operation::ADD:
 			case Operation::SUB:
 			case Operation::MULT:
 			case Operation::DIV:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
-				orignaize_one_reg(m_sentences[i].get_arg2(), false);
-				orignaize_one_reg(m_sentences[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg2(), false);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true);
 				break;
 			}
 			case Operation::ADDI:
@@ -337,53 +360,53 @@ void MiddleFunction::pre_orgnaize_reg()
 			case Operation::MULI:
 			case Operation::DIVI:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
-				orignaize_one_reg(m_sentences[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true);
 				break;
 			}
 			case Operation::NEG:
 			case Operation::ASSIGN:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
-				orignaize_one_reg(m_sentences[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true);
 				break;
 			}
 			case Operation::INIT:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true);
 				break;
 			}
 			case Operation::P_STR:
 			case Operation::P_INT:
 			case Operation::P_CHAR:
 			{
-				if (m_sentences[i].get_arg1()->get_type() == ArgType::ARRAY)
-					orignaize_one_reg(m_sentences[i].get_arg1()->get_offset(), false);
-				m_sentences[i].get_arg1()->set_target_reg(4, true);
-				now_arg[4] = *(m_sentences[i].get_arg1());
+				if (m_sent[i].get_arg1()->get_type() == ArgType::ARRAY)
+					orignaize_one_reg(m_sent[i].get_arg1()->get_offset(), false);
+				m_sent[i].get_arg1()->set_target_reg(4, true);
+				now_arg[4] = *(m_sent[i].get_arg1());
 				reg_need_save[4] = true;
 				break;
 			}
 			case Operation::S_CHAR:
 			case Operation::S_INT:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true);
 				break;
 			}
 			case Operation::SAVE_PARA:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
 				break;
 			}
 			case Operation::SAVE_RET:
 			case Operation::LOAD_RET:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
 				break;
 			}
 			case Operation::BEQI:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
 				break;
 			}
 			case Operation::BEQ:
@@ -393,8 +416,8 @@ void MiddleFunction::pre_orgnaize_reg()
 			case Operation::BLE:
 			case Operation::BLT:
 			{
-				orignaize_one_reg(m_sentences[i].get_arg1(), false);
-				orignaize_one_reg(m_sentences[i].get_arg2(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg2(), false);
 				break;
 			}
 			case Operation::START_FUNC:
@@ -449,7 +472,7 @@ void MiddleFunction::read_in_sentences(SentenceFuHe sent, StringTable& strings)
 		m_sentences.insert(m_sentences.end(), m.begin(), m.end());
 	}
 	read_yu_ju(sent.get_sentence(), strings);
-	//printf("%d", m_sentences.size());
+	printf("\nFunc_%s:\n", this->name_in_low.c_str());
 	unsigned int i;
 	for (i = 0; i < m_sentences.size(); i++)
 	{
@@ -459,16 +482,18 @@ void MiddleFunction::read_in_sentences(SentenceFuHe sent, StringTable& strings)
 
 string MiddleFunction::to_mips(StringTable* strings, MiddleCode* all_code)
 {
-	pre_orgnaize_reg();
+	pre_orgnaize_reg(this->m_sentences);
 	string for_return;
 	for_return.clear();
 	for_return += mips_begin_func();
 	for_return += "\n";
 	unsigned int i;
+	int func_para_size = 0;
 	for (i = 0; i < m_sentences.size(); i++)
 	{
-		for_return += m_sentences[i].to_mips
-			(local_const, global_const, local_var, global_var, strings, all_code);
+		for_return += m_sentences[i].to_mips(
+			local_const, global_const, local_var, global_var, 
+			strings, all_code, func_para_size);
 	}
 	for_return += "\n";
 	for_return += mips_end_func();
@@ -534,7 +559,7 @@ void MiddleCode::read_in(Grammar grammar)
 	f->read_in_sentences(grammar.get_main().get_sentence(), *all_string);
 	functions.push_back(f);
 	unsigned int i;
-	//printf("%d", m_sentences.size());
+	printf("\nInit global:\n");
 	for (i = 0; i < m_sentences.size(); i++)
 	{
 		printf("%s", m_sentences[i].to_string().c_str());
@@ -553,15 +578,19 @@ void MiddleCode::print_mips_to_file(string file_name)
 	out << "\n";
 	// .text
 	out << ".text\n";
+	MiddleFunction tmp_global("__global", global_const, global_var);
+	tmp_global.pre_orgnaize_reg(m_sentences);
 	unsigned int i;
+	int func_para_size = 0;
 	for (i = 0; i < m_sentences.size(); i++)
 	{
-		out << m_sentences[i].to_mips
-			(new ConstTable(), global_const, 
-			new VarTable(), global_var, all_string, this);
+		out << m_sentences[i].to_mips(
+			new ConstTable(), global_const, new VarTable(), global_var, 
+			all_string, this, func_para_size);
 	}
-	out << mips_goto_func("main");
-	out << mips_exit_func();
+	out << Mips::jal("func_main_begin");
+	//out << mips_goto_func("main");
+	//out << mips_exit_func();
 	out << Mips::syscall(10);
 
 	// functions

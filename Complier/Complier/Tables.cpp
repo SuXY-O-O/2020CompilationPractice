@@ -215,7 +215,7 @@ bool IdentifyTable::add_func
 		new IdentifyBlock(this_func->get_name_in_low(), func_count);
 	blocks.push_back(this_block);
 	active_block = func_count;
-	printf("func name: %s, active_block: %d\n", id->get_string().c_str(), active_block);
+	// printf("func name: %s, active_block: %d\n", id->get_string().c_str(), active_block);
 	func_count++;
 	this_block->add_paras(paras);
 	if (!blocks[0]->add_identify(this_func))
@@ -272,7 +272,7 @@ bool IdentifyTable::have_var_const(WordInfo* id)
 {
 	if (blocks[active_block]->have_identity(id->get_string()))
 	{
-		printf("%s, in block %d\n", id->get_string().c_str(), active_block);
+		//printf("%s, in block %d\n", id->get_string().c_str(), active_block);
 		IdentifyProperty p = 
 			blocks[active_block]->get_property_by_name(id->get_string());
 		if (p == IdentifyProperty::CONST || p == IdentifyProperty::VAR)
@@ -285,7 +285,7 @@ bool IdentifyTable::have_var_const(WordInfo* id)
 	}
 	else if (blocks[0]->have_identity(id->get_string()))
 	{
-		printf("%s, in block 0\n", id->get_string().c_str());
+		//printf("%s, in block 0\n", id->get_string().c_str());
 		IdentifyProperty p =
 			blocks[0]->get_property_by_name(id->get_string());
 		if (p == IdentifyProperty::CONST || p == IdentifyProperty::VAR)

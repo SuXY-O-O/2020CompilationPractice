@@ -113,7 +113,6 @@ string StringTable::get_label()
 	count++;
 	string s = "_str_";
 	s += std::to_string(count);
-	//printf("aaaaaaa %s\n", s.c_str());
 	return s;
 }
 
@@ -138,76 +137,76 @@ string StringTable::to_mips()
 }
 
 string MiddleSentence::load_arg_to_reg
-	(Arg arg, ConstTable* l_const, ConstTable* g_const, 
+	(Arg* arg, ConstTable* l_const, ConstTable* g_const, 
 	VarTable* l_var, VarTable* g_var)
 {
-	if (arg.get_type() == ArgType::NONE || !arg.check_need_to_stack())
+	if (arg->get_type() == ArgType::NONE || !arg->check_need_to_stack())
 		return string();
 	string for_return;
 	for_return.clear();
-	if (arg.get_type() == ArgType::INT || arg.get_type() == ArgType::CHAR)
+	if (arg->get_type() == ArgType::INT || arg->get_type() == ArgType::CHAR)
 	{
-		for_return += Mips::li(arg.get_reg(), arg.get_value());
+		for_return += Mips::li(arg->get_reg(), arg->get_value());
 	}
-	else if (l_const->have_name(arg.get_id()))
+	else if (arg->get_type() == ArgType::IDENTIFY)
 	{
-		ConstInfo* info = l_const->get_info_by_name(arg.get_id());
-		for_return += Mips::li(arg.get_reg(), info->get_value());
-	}
-	else if (arg.get_type() == ArgType::IDENTIFY)
-	{
-		if (l_var->have_name(arg.get_id()))
+		if (l_const->have_name(arg->get_id()))
 		{
-			VarInfo* info = l_var->get_info_by_name(arg.get_id());
+			ConstInfo* info = l_const->get_info_by_name(arg->get_id());
+			for_return += Mips::li(arg->get_reg(), info->get_value());
+		}
+		else if (l_var->have_name(arg->get_id()))
+		{
+			VarInfo* info = l_var->get_info_by_name(arg->get_id());
 			if (info->is_func_arg)
-				for_return += Mips::lw(arg.get_reg(), info->real_offset, 30);//fp
+				for_return += Mips::lw(arg->get_reg(), info->real_offset, 30);//fp
 			else
-				for_return += Mips::lw(arg.get_reg(), info->real_offset, 29);//sp
+				for_return += Mips::lw(arg->get_reg(), info->real_offset, 29);//sp
 		}
-		else if (g_var->have_name(arg.get_id()))
+		else if (g_var->have_name(arg->get_id()))
 		{
-			for_return += Mips::la(arg.get_reg(), arg.get_id());
-			for_return += Mips::lw(arg.get_reg(), 0, arg.get_reg());
+			for_return += Mips::la(arg->get_reg(), arg->get_id());
+			for_return += Mips::lw(arg->get_reg(), 0, arg->get_reg());
+		}
+		else if (g_const->have_name(arg->get_id()))
+		{
+			ConstInfo* info = g_const->get_info_by_name(arg->get_id());
+			for_return += Mips::li(arg->get_reg(), info->get_value());
 		}
 	}
-	else if (g_const->have_name(arg.get_id()))
+	else if (arg->get_type() == ArgType::ARRAY)// is from array
 	{
-		ConstInfo* info = g_const->get_info_by_name(arg.get_id());
-		for_return += Mips::li(arg.get_reg(), info->get_value());
-	}
-	else if (arg.get_type() == ArgType::ARRAY)// is from array
-	{
-		Arg* array_offset = arg.get_offset();
+		Arg* array_offset = arg->get_offset();
 		if (array_offset->get_type() == ArgType::INT)
 		{
 			int of = array_offset->get_value();
-			if (l_var->have_name(arg.get_id()))
+			if (l_var->have_name(arg->get_id()))
 			{
-				VarInfo* info = l_var->get_info_by_name(arg.get_id());
+				VarInfo* info = l_var->get_info_by_name(arg->get_id());
 				// should not be a func para
-				for_return += Mips::lw(arg.get_reg(), of + info->real_offset, 29);//sp
+				for_return += Mips::lw(arg->get_reg(), of + info->real_offset, 29);//sp
 			}
-			else if (g_var->have_name(arg.get_id()))
+			else if (g_var->have_name(arg->get_id()))
 			{
-				for_return += Mips::la(arg.get_reg(), arg.get_id());
-				for_return += Mips::lw(arg.get_reg(), of, arg.get_reg());
+				for_return += Mips::la(arg->get_reg(), arg->get_id());
+				for_return += Mips::lw(arg->get_reg(), of, arg->get_reg());
 			}
 		}
 		else
 		{
-			for_return += load_arg_to_reg(*array_offset, l_const, g_const, l_var, g_var);
+			for_return += load_arg_to_reg(array_offset, l_const, g_const, l_var, g_var);
 			int reg_offset = array_offset->get_reg();
-			if (l_var->have_name(arg.get_id()))
+			if (l_var->have_name(arg->get_id()))
 			{
-				VarInfo* info = l_var->get_info_by_name(arg.get_id());
+				VarInfo* info = l_var->get_info_by_name(arg->get_id());
 				// should not be a func para
-				for_return += Mips::add(arg.get_reg(), 29, reg_offset);
-				for_return += Mips::lw(arg.get_reg(), info->real_offset, arg.get_reg());//sp
+				for_return += Mips::add(arg->get_reg(), 29, reg_offset);
+				for_return += Mips::lw(arg->get_reg(), info->real_offset, arg->get_reg());//sp
 			}
-			else if (g_var->have_name(arg.get_id()))
+			else if (g_var->have_name(arg->get_id()))
 			{
-				for_return += Mips::la_l_r(arg.get_reg(), arg.get_id(), reg_offset);
-				for_return += Mips::lw(arg.get_reg(), 0, arg.get_reg());
+				for_return += Mips::la_l_r(arg->get_reg(), arg->get_id(), reg_offset);
+				for_return += Mips::lw(arg->get_reg(), 0, arg->get_reg());
 			}
 		}
 	}
@@ -215,46 +214,45 @@ string MiddleSentence::load_arg_to_reg
 }
 
 string MiddleSentence::save_to_stack
-	(Arg arg, ConstTable* l_const, ConstTable* g_const, 
+	(Arg* arg, ConstTable* l_const, ConstTable* g_const, 
 	VarTable* l_var, VarTable* g_var)
 {
 	string for_return;
 	for_return.clear();
-	if (arg.get_type() == ArgType::NONE || !arg.check_need_to_stack())
+	if (arg->get_type() == ArgType::NONE || !arg->check_need_to_stack())
 		return for_return;
 	bool from_local = true;
 	VarInfo* info;
-	if (l_var->have_name(arg.get_id()))
+	if (l_var->have_name(arg->get_id()))
 	{
 		from_local = true;
-		info = l_var->get_info_by_name(arg.get_id());
+		info = l_var->get_info_by_name(arg->get_id());
 	}
 	else
 	{
 		from_local = false;
-		info = g_var->get_info_by_name(arg.get_id());
+		info = g_var->get_info_by_name(arg->get_id());
 	}
 	if (info->dimenation == 0)
 	{
 		if (from_local)
-			for_return += Mips::sw(arg.get_reg(), info->real_offset, 29);
+			for_return += Mips::sw(arg->get_reg(), info->real_offset, 29);
 		else
-			for_return += Mips::sw(arg.get_reg(), arg.get_id());
+			for_return += Mips::sw(arg->get_reg(), arg->get_id());
 	}
 	else
 	{
-		for_return += load_arg_to_reg(*arg.get_offset(), l_const, g_const, l_var, g_var);
-		int reg_offset = arg.get_offset()->get_reg();
-		int offset_reg = arg.get_offset()->get_reg();
+		for_return += load_arg_to_reg(arg->get_offset(), l_const, g_const, l_var, g_var);
+		int reg_offset = arg->get_offset()->get_reg();
 		if (from_local)
 		{
-			for_return += Mips::add(offset_reg, 29, reg_offset);
-			for_return += Mips::sw(arg.get_reg(), info->real_offset, offset_reg);//sp
+			for_return += Mips::add(4, 29, reg_offset);
+			for_return += Mips::sw(arg->get_reg(), info->real_offset, 4);//sp
 		}
 		else
 		{
-			for_return += Mips::la_l_r(offset_reg, arg.get_id(), reg_offset);
-			for_return += Mips::sw(arg.get_reg(), 0, offset_reg);
+			for_return += Mips::la_l_r(4, arg->get_id(), reg_offset);
+			for_return += Mips::sw(arg->get_reg(), 0, 4);
 		}
 	}
 	return for_return;
@@ -266,11 +264,20 @@ string MiddleSentence::to_string()
 	s.clear();
 	s += op_to_str(op);
 	s += "\t";
-	s += arg1.to_string();
+	if (arg1 != NULL)
+		s += arg1->to_string();
+	else
+		s += "_/_";
 	s += "\t";
-	s += arg2.to_string();
+	if (arg2 != NULL)
+		s += arg2->to_string();
+	else
+		s += "_/_";
 	s += "\t";
-	s += out.to_string();
+	if (out != NULL)
+		s += out->to_string();
+	else
+		s += "_/_";
 	s += "\n";
 	return s;
 	//TODO
@@ -279,25 +286,24 @@ string MiddleSentence::to_string()
 string MiddleSentence::to_mips
 	(ConstTable* l_const, ConstTable* g_const, 
 	VarTable* l_var, VarTable* g_var, StringTable* strings,
-	MiddleCode* all_code)
+	MiddleCode* all_code, int& func_para_size)
 {
 	string for_return;
 	for_return.clear();
-	int func_para_size = 0;
 	switch (op)
 	{
 		case Operation::ADD:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::add(out.get_reg(), arg1.get_reg(), arg2.get_reg());
+			for_return += Mips::add(out->get_reg(), arg1->get_reg(), arg2->get_reg());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::ADDI:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::addi(out.get_reg(), arg1.get_reg(), arg2.get_value());
+			for_return += Mips::addi(out->get_reg(), arg1->get_reg(), arg2->get_value());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
@@ -305,14 +311,14 @@ string MiddleSentence::to_mips
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::sub(out.get_reg(), arg1.get_reg(), arg2.get_reg());
+			for_return += Mips::sub(out->get_reg(), arg1->get_reg(), arg2->get_reg());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::SUBI:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::subi(out.get_reg(), arg1.get_reg(), arg2.get_value());
+			for_return += Mips::subi(out->get_reg(), arg1->get_reg(), arg2->get_value());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
@@ -320,14 +326,14 @@ string MiddleSentence::to_mips
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::mul(out.get_reg(), arg1.get_reg(), arg2.get_reg());
+			for_return += Mips::mul(out->get_reg(), arg1->get_reg(), arg2->get_reg());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::MULI:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::muli(out.get_reg(), arg1.get_reg(), arg2.get_value());
+			for_return += Mips::muli(out->get_reg(), arg1->get_reg(), arg2->get_value());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
@@ -335,69 +341,69 @@ string MiddleSentence::to_mips
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::div(out.get_reg(), arg1.get_reg(), arg2.get_reg());
+			for_return += Mips::div(out->get_reg(), arg1->get_reg(), arg2->get_reg());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::DIVI:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::divi(out.get_reg(), arg1.get_reg(), arg2.get_value());
+			for_return += Mips::divi(out->get_reg(), arg1->get_reg(), arg2->get_value());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::NEG:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::neg(out.get_reg(), arg1.get_reg());
+			for_return += Mips::neg(out->get_reg(), arg1->get_reg());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::ASSIGN:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::move(out.get_reg(), arg1.get_reg());
+			for_return += Mips::move(out->get_reg(), arg1->get_reg());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::INIT:
 		{
-			for_return += Mips::li(out.get_reg(), arg1.get_value());
+			for_return += Mips::li(out->get_reg(), arg1->get_value());
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::P_CHAR:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::move(4, arg1.get_reg());
+			//for_return += Mips::move(4, arg1->get_reg());
 			for_return += Mips::syscall(11);
 			break;
 		}
 		case Operation::P_INT:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::move(4, arg1.get_reg());
+			//for_return += Mips::move(4, arg1->get_reg());
 			for_return += Mips::syscall(1);
 			break;
 		}
 		case Operation::P_STR:
 		{
-			for_return += Mips::la(arg1.get_reg(), arg1.get_id());
-			for_return += Mips::move(4, arg1.get_reg());
+			for_return += Mips::la(arg1->get_reg(), arg1->get_id());
+			//for_return += Mips::move(4, arg1->get_reg());
 			for_return += Mips::syscall(4);
 			break;
 		}
 		case Operation::S_INT:
 		{
 			for_return += Mips::syscall(5);
-			for_return += Mips::move(out.get_reg(), 2);
+			for_return += Mips::move(out->get_reg(), 2);
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::S_CHAR:
 		{
 			for_return += Mips::syscall(12);
-			for_return += Mips::move(out.get_reg(), 2);
+			for_return += Mips::move(out->get_reg(), 2);
 			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
 			break;
 		}
@@ -410,89 +416,91 @@ string MiddleSentence::to_mips
 		{
 			func_para_size += 4;
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::sw(arg1.get_reg(), -func_para_size, 29);
+			for_return += Mips::sw(arg1->get_reg(), -func_para_size, 29);
+			break;
 		}
 		case Operation::JAL:			// goto func only
 		{
-			for_return += Mips::addi(29, 29, -func_para_size);
+			if (func_para_size != 0)
+				for_return += Mips::addi(29, 29, -func_para_size);
 			for_return += Mips::sw(30, -4, 29);								//save $fp
 			for_return += Mips::move(30, 29);								//$fp = $sp
 			for_return += Mips::addi(29, 29, -4);							//$sp ready
-			for_return += Mips::jal("func_" + arg1.get_id() + "_begin");	//jump
+			for_return += Mips::jal("func_" + arg1->get_id() + "_begin");	//jump
 			for_return += Mips::lw(30, 0, 29);								//get $fp back
-			for_return += Mips::addi(29, 29, 4 + all_code->get_para_size_by_name(arg1.get_id()));
+			for_return += Mips::addi(29, 29, 4 + all_code->get_para_size_by_name(arg1->get_id()));
 																			//pop paras and $fp from stack
-			func_para_size -= all_code->get_para_size_by_name(arg1.get_id());
+			func_para_size -= all_code->get_para_size_by_name(arg1->get_id());
 			break;
 		}
 		case Operation::JUMP:
 		{
-			for_return += Mips::jump(arg1.get_id());
+			for_return += Mips::jump(arg1->get_id());
 			break;
 		}
 		case Operation::LOAD_RET:
 		{
-			for_return += Mips::move(arg1.get_reg(), 2);	//load from $v0
+			for_return += Mips::move(arg1->get_reg(), 2);	//load from $v0
 			for_return += save_to_stack(arg1, l_const, g_const, l_var, g_var);
 			break;
 		}
 		case Operation::SAVE_RET:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::move(2, arg1.get_reg());	//save to $v0
+			for_return += Mips::move(2, arg1->get_reg());	//save to $v0
 			break;
 		}
 		case Operation::BEQI:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
-			for_return += Mips::beqi(arg1.get_reg(), arg2.get_value(), out.get_id());
+			for_return += Mips::beqi(arg1->get_reg(), arg2->get_value(), out->get_id());
 			break;
 		}
 		case Operation::BEQ:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::beq(arg1.get_reg(), arg2.get_reg(), out.get_id());
+			for_return += Mips::beq(arg1->get_reg(), arg2->get_reg(), out->get_id());
 			break;
 		}
 		case Operation::BNE:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::bne(arg1.get_reg(), arg2.get_reg(), out.get_id());
+			for_return += Mips::bne(arg1->get_reg(), arg2->get_reg(), out->get_id());
 			break;
 		}
 		case Operation::BGE:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::bge(arg1.get_reg(), arg2.get_reg(), out.get_id());
+			for_return += Mips::bge(arg1->get_reg(), arg2->get_reg(), out->get_id());
 			break;
 		}
 		case Operation::BGT:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::bgt(arg1.get_reg(), arg2.get_reg(), out.get_id());
+			for_return += Mips::bgt(arg1->get_reg(), arg2->get_reg(), out->get_id());
 			break;
 		}
 		case Operation::BLE:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::ble(arg1.get_reg(), arg2.get_reg(), out.get_id());
+			for_return += Mips::ble(arg1->get_reg(), arg2->get_reg(), out->get_id());
 			break;
 		}
 		case Operation::BLT:
 		{
 			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
 			for_return += load_arg_to_reg(arg2, l_const, g_const, l_var, g_var);
-			for_return += Mips::blt(arg1.get_reg(), arg2.get_reg(), out.get_id());
+			for_return += Mips::blt(arg1->get_reg(), arg2->get_reg(), out->get_id());
 			break;
 		}
 		case Operation::LABEL:
 		{
-			for_return += arg1.get_id() + ":\n";
+			for_return += arg1->get_id() + ":\n";
 			break;
 		}
 	}

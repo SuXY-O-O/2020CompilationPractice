@@ -213,47 +213,38 @@ class MiddleSentence
 {
 private:
 	Operation op;
-	Arg arg1;
-	Arg arg2;
-	Arg out;
+	Arg* arg1;
+	Arg* arg2;
+	Arg* out;
 	string load_arg_to_reg
-		(Arg arg, ConstTable* l_const, ConstTable* g_const, 
+		(Arg* arg, ConstTable* l_const, ConstTable* g_const, 
 		VarTable* l_var, VarTable* g_var);
 	string save_to_stack
-		(Arg arg, ConstTable* l_const, ConstTable* g_const, 
+		(Arg* arg, ConstTable* l_const, ConstTable* g_const, 
 		VarTable* l_var, VarTable* g_var);
 public:
 	MiddleSentence(Operation o, Arg* a1, Arg* a2, Arg* a3) :
 		op(o)
 	{
-		if (a1 != NULL)
-			arg1 = *a1;
-		else
-			arg1 = *(new Arg());
-		if (a2 != NULL)
-			arg2 = *a2;
-		else
-			arg2 = *(new Arg());
-		if (a3 != NULL)
-			out = *a3;
-		else
-			out = *(new Arg());
+		arg1 = a1;
+		arg2 = a2;
+		out = a3;
 	};
 	string to_string();
 	string to_mips(ConstTable* l_const, ConstTable* g_const, 
 		VarTable* l_var, VarTable* g_var, StringTable* strings,
-		MiddleCode* all_code);
+		MiddleCode* all_code, int& func_para_size);
 	Arg* get_arg1()
 	{
-		return &arg1;
+		return arg1;
 	}
 	Arg* get_arg2()
 	{
-		return &arg2;
+		return arg2;
 	}
 	Arg* get_arg_out()
 	{
-		return &out;
+		return out;
 	}
 	Operation get_operation()
 	{

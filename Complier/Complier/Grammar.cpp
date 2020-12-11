@@ -831,6 +831,8 @@ vector<MiddleSentence> VariableDingYi::add_to_middle_table(VarTable* table)
 			if (define[i].get_type() == TypeEnum::COMMA)
 			{
 				info->dimenation = d;
+				info->d1 = d1;
+				info->d2 = d2;
 				if (d == 0)
 					info->size_in_byte = 4;
 				else if (d == 1)
@@ -839,6 +841,9 @@ vector<MiddleSentence> VariableDingYi::add_to_middle_table(VarTable* table)
 					info->size_in_byte = 4 * d1 * d2;
 				table->add_in(info);
 				info = new VarInfo();
+				d = 0;
+				d1 = 0;
+				d2 = 0;
 			}
 		}
 		info->dimenation = d;
@@ -992,7 +997,10 @@ string SentenceReturn::to_string()
 	return for_return;
 }
 
-vector<MiddleSentence> SentenceReturn::add_to_middle(VarTable& local, VarTable& global, string func_name)
+vector<MiddleSentence> SentenceReturn::add_to_middle(
+	VarTable& local, VarTable& global, 
+	ConstTable* c_local, ConstTable* c_global, 
+	string func_name)
 {
 	vector<MiddleSentence> for_return;
 	for_return.clear();
@@ -1005,8 +1013,9 @@ vector<MiddleSentence> SentenceReturn::add_to_middle(VarTable& local, VarTable& 
 	}
 	else
 	{
-		Arg a = expression.add_to_middle(for_return, local, global);
-		MiddleSentence s_save(Operation::SAVE_RET, &a, NULL, NULL);
+		Arg* a = expression.add_to_middle(for_return, local, global, c_local, c_global);
+		MiddleSentence s_save(Operation::SAVE_RET, a, NULL, NULL);
+		for_return.push_back(s_save);
 		Arg* label = new Arg(ArgType::IDENTIFY, "func_" + func_name + "_end");
 		MiddleSentence s_jump(Operation::JUMP, label, NULL, NULL);
 		for_return.push_back(s_jump);
@@ -1098,7 +1107,9 @@ string SentencePrint::to_string()
 	return for_return;
 }
 
-vector<MiddleSentence> SentencePrint::add_to_middle(StringTable& table, VarTable& local, VarTable& global)
+vector<MiddleSentence> SentencePrint::add_to_middle
+	(StringTable& table, VarTable& local, VarTable& global,
+	ConstTable* c_local, ConstTable* c_global)
 {
 	vector<MiddleSentence> for_return;
 	for_return.clear();
@@ -1111,26 +1122,26 @@ vector<MiddleSentence> SentencePrint::add_to_middle(StringTable& table, VarTable
 		info->name_in_low = new_tmp;
 		info->value = zi_fu.get_input_string();
 		table.add_in(info);
-		Arg a(ArgType::IDENTIFY, new_tmp);
-		MiddleSentence s(Operation::P_STR, &a, new Arg(), new Arg());
+		Arg* a = new Arg(ArgType::IDENTIFY, new_tmp);
+		MiddleSentence s(Operation::P_STR, a, NULL, NULL);
 		for_return.push_back(s);
 	}
 	if (type == 1 || type == 3)
 	{
-		Arg out = expression.add_to_middle(for_return, local, global);
+		Arg* out = expression.add_to_middle(for_return, local, global, c_local, c_global);
 		if (expression.check_type() == IdentifyType::CHAR)
 		{
-			MiddleSentence s(Operation::P_CHAR, &out, new Arg(), new Arg());
+			MiddleSentence s(Operation::P_CHAR, out, NULL, NULL);
 			for_return.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::P_INT, &out, new Arg(), new Arg());
+			MiddleSentence s(Operation::P_INT, out, NULL, NULL);
 			for_return.push_back(s);
 		}
 	}
-	Arg new_line(ArgType::CHAR, '\n');
-	MiddleSentence s(Operation::P_CHAR, &new_line, new Arg(), new Arg());
+	Arg* new_line = new Arg(ArgType::CHAR, '\n');
+	MiddleSentence s(Operation::P_CHAR, new_line, NULL, NULL);
 	for_return.push_back(s);
 	return for_return;
 }
@@ -1202,15 +1213,15 @@ vector<MiddleSentence> SentenceRead::add_to_middle(VarTable* local, VarTable* gl
 		info = local->get_info_by_name(name);
 	else
 		info = global->get_info_by_name(name);
-	Arg out(ArgType::IDENTIFY, name);
+	Arg* out = new Arg(ArgType::IDENTIFY, name);
 	if (info->type == 0)
 	{
-		MiddleSentence s(Operation::S_INT, new Arg(), new Arg(), &out);
+		MiddleSentence s(Operation::S_INT, NULL, NULL, out);
 		for_return.push_back(s);
 	}
 	else
 	{
-		MiddleSentence s(Operation::S_CHAR, new Arg(), new Arg(), &out);
+		MiddleSentence s(Operation::S_CHAR, NULL, NULL, out);
 		for_return.push_back(s);
 	}
 	return for_return;
@@ -1373,8 +1384,10 @@ string SentenceDiaoYong::to_string()
 	return for_return;
 }
 
-Arg SentenceDiaoYong::add_to_middle
-(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global)
+Arg* SentenceDiaoYong::add_to_middle
+	(vector<MiddleSentence>& sentences, 
+	ConstTable* c_local, ConstTable* c_global, 
+	VarTable& local, VarTable& global)
 {
 	Arg* func = new Arg(ArgType::IDENTIFY, items[0].get_string_in_low());
 	MiddleSentence start(Operation::START_FUNC, func, NULL, NULL);
@@ -1383,14 +1396,14 @@ Arg SentenceDiaoYong::add_to_middle
 	int i = 0;
 	for (i = exps.size() - 1; i >= 0; i--)
 	{
-		Arg a = exps[i].add_to_middle(sentences, local, global);
-		MiddleSentence a_para(Operation::SAVE_PARA, &a, NULL, NULL);
+		Arg* a = exps[i].add_to_middle(sentences, local, global, c_local, c_global);
+		MiddleSentence a_para(Operation::SAVE_PARA, a, NULL, NULL);
 		sentences.push_back(a_para);
 	}
 	MiddleSentence jump(Operation::JAL, func, NULL, NULL);
 	sentences.push_back(jump);
 	if (type == 2)
-		return Arg();
+		return new Arg();
 	else
 	{
 		string new_tmp = local.get_new_tmp();
@@ -1406,7 +1419,7 @@ Arg SentenceDiaoYong::add_to_middle
 		Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp);
 		MiddleSentence ret(Operation::LOAD_RET, tmp, NULL, NULL);
 		sentences.push_back(ret);
-		return *tmp;
+		return tmp;
 	}
 }
 
@@ -1842,13 +1855,15 @@ TiaoJian SentenceXunHuan::get_tiao_jian()
 	return tiao_jian;
 }
 
-vector<MiddleSentence> SentenceXunHuan::get_for_init(VarTable& local, VarTable& global)
+vector<MiddleSentence> SentenceXunHuan::get_for_init(
+	VarTable& local, VarTable& global,
+	ConstTable* c_local, ConstTable* c_global)
 {
 	vector<MiddleSentence> for_return;
 	for_return.clear();
-	Arg e = expression.add_to_middle(for_return, local, global);
+	Arg* e = expression.add_to_middle(for_return, local, global, c_local, c_global);
 	Arg* target = new Arg(ArgType::IDENTIFY, items[2].get_string_in_low());
-	MiddleSentence assign(Operation::ASSIGN, &e, NULL, target);
+	MiddleSentence assign(Operation::ASSIGN, e, NULL, target);
 	for_return.push_back(assign);
 	return for_return;
 }
@@ -1909,48 +1924,52 @@ string TiaoJian::to_string()
 	return for_return;
 }
 
-vector<MiddleSentence> TiaoJian::add_to_middle(VarTable& local, VarTable& global, string label)
+vector<MiddleSentence> TiaoJian::add_to_middle(
+	VarTable& local, VarTable& global, 
+	ConstTable* c_local, ConstTable* c_global, 
+	string label)
 {
+	// jump if not right, so == -> !=, ...
 	vector<MiddleSentence> for_return;
 	for_return.clear();
-	Arg a1 = e_left.add_to_middle(for_return, local, global);
-	Arg a2 = e_right.add_to_middle(for_return, local, global);
+	Arg* a1 = e_left.add_to_middle(for_return, local, global, c_local, c_global);
+	Arg* a2 = e_right.add_to_middle(for_return, local, global, c_local, c_global);
 	Arg* al = new Arg(ArgType::IDENTIFY, label);
 	switch (relation.get_type())
 	{
 		case TypeEnum::EQL:
 		{
-			MiddleSentence jump(Operation::BEQ, &a1, &a2, al);
+			MiddleSentence jump(Operation::BNE, a1, a2, al);
 			for_return.push_back(jump);
 			break;
 		}
 		case TypeEnum::NEQ:
 		{
-			MiddleSentence jump(Operation::BNE, &a1, &a2, al);
+			MiddleSentence jump(Operation::BEQ, a1, a2, al);
 			for_return.push_back(jump);
 			break;
 		}
 		case TypeEnum::LSS:
 		{
-			MiddleSentence jump(Operation::BLT, &a1, &a2, al);
+			MiddleSentence jump(Operation::BGE, a1, a2, al);
 			for_return.push_back(jump);
 			break;
 		}
 		case TypeEnum::LEQ:
 		{
-			MiddleSentence jump(Operation::BLE, &a1, &a2, al);
+			MiddleSentence jump(Operation::BGT, a1, a2, al);
 			for_return.push_back(jump);
 			break;
 		}
 		case TypeEnum::GRE:
 		{
-			MiddleSentence jump(Operation::BGT, &a1, &a2, al);
+			MiddleSentence jump(Operation::BLE, a1, a2, al);
 			for_return.push_back(jump);
 			break;
 		}
 		case TypeEnum::GEQ:
 		{
-			MiddleSentence jump(Operation::BGE, &a1, &a2, al);
+			MiddleSentence jump(Operation::BLT, a1, a2, al);
 			for_return.push_back(jump);
 			break;
 		}
@@ -2140,7 +2159,9 @@ string SentenceFuZhi::to_string()
 	return for_return;
 }
 
-vector<MiddleSentence> SentenceFuZhi::add_to_middle(VarTable& local, VarTable& global)
+vector<MiddleSentence> SentenceFuZhi::add_to_middle(
+	VarTable& local, VarTable& global,
+	ConstTable* c_local, ConstTable* c_global)
 {
 	vector<MiddleSentence> for_return;
 	for_return.clear();
@@ -2161,22 +2182,48 @@ vector<MiddleSentence> SentenceFuZhi::add_to_middle(VarTable& local, VarTable& g
 	}
 	else if (d == 1)
 	{
-		Arg offset = exps[0].add_to_middle(for_return, local, global);
-		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), &offset);
+		Arg* offset = exps[0].add_to_middle(for_return, local, global, c_local, c_global);
+		string new_tmp = local.get_new_tmp();
+		while (global.have_name(new_tmp))
+			new_tmp = local.get_new_tmp();
+		VarInfo* tmp_info = new VarInfo();
+		tmp_info->dimenation = 0;
+		tmp_info->have_initial = false;
+		tmp_info->name_in_low = new_tmp;
+		tmp_info->type = 0;
+		tmp_info->size_in_byte = 4;
+		local.add_in(tmp_info);
+		Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+		MiddleSentence s_mul4(Operation::MULI, offset, new Arg(ArgType::INT, 4), out);
+		for_return.push_back(s_mul4);
+		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), out);
 	}
 	else if (d == 2)
 	{
-		Arg d1 = exps[0].add_to_middle(for_return, local, global);
-		Arg* num = new Arg(ArgType::INT, left_var->d1);
-		MiddleSentence s_mult(Operation::MULT, &d1, num, &d1);
+		string new_tmp = local.get_new_tmp();
+		while (global.have_name(new_tmp))
+			new_tmp = local.get_new_tmp();
+		VarInfo* tmp_info = new VarInfo();
+		tmp_info->dimenation = 0;
+		tmp_info->have_initial = false;
+		tmp_info->name_in_low = new_tmp;
+		tmp_info->type = 0;
+		tmp_info->size_in_byte = 4;
+		local.add_in(tmp_info);
+		Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+		Arg* d1 = exps[0].add_to_middle(for_return, local, global, c_local, c_global);
+		Arg* num = new Arg(ArgType::INT, left_var->d2);
+		MiddleSentence s_mult(Operation::MULI, d1, num, out);
 		for_return.push_back(s_mult);
-		Arg d2 = exps[0].add_to_middle(for_return, local, global);
-		MiddleSentence s_add(Operation::ADD, &d1, &d2, &d1);
+		Arg* d2 = exps[0].add_to_middle(for_return, local, global, c_local, c_global);
+		MiddleSentence s_add(Operation::ADD, out, d2, out);
 		for_return.push_back(s_add);
-		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), &d1);
+		MiddleSentence s_mul4(Operation::MULI, out, new Arg(ArgType::INT, 4), out);
+		for_return.push_back(s_mul4);
+		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), out);
 	}
-	Arg assign = exps[d].add_to_middle(for_return, local, global);
-	MiddleSentence s(Operation::ASSIGN, &assign, new Arg(), target);
+	Arg* assign = exps[d].add_to_middle(for_return, local, global, c_local, c_global);
+	MiddleSentence s(Operation::ASSIGN, assign, new Arg(), target);
 	for_return.push_back(s);
 	return for_return;
 }
@@ -2305,7 +2352,6 @@ int Sentence::read_in(Lexer& lexer)
 		default:
 			return lexer.get_pos();
 	}
-	//printf("%s\n\n", this->to_string().c_str());
 	return -1;
 }
 
@@ -2563,21 +2609,24 @@ string Factor::to_string()
 	return for_return;
 }
 
-Arg Factor::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global)
+Arg* Factor::add_to_middle(
+	vector<MiddleSentence>& sentences, 
+	VarTable& local, VarTable& global,
+	ConstTable* c_local, ConstTable* c_global)
 {
 	if (type == 2)
 	{
-		Arg a(ArgType::INT, zheng_shu.get_number());
+		Arg* a = new Arg(ArgType::INT, zheng_shu.get_number());
 		return a;
 	}
 	else if (type == 3)
 	{
-		Arg a(ArgType::CHAR, zi_fu.get_string()[0]);
+		Arg* a = new Arg(ArgType::CHAR, zi_fu.get_string()[0]);
 		return a;
 	}
 	else if (type == 4)
 	{
-		return diao_yong->add_to_middle(sentences, local, global);
+		return diao_yong->add_to_middle(sentences, c_local, c_global, local, global);
 	}
 	else
 	{
@@ -2591,44 +2640,98 @@ Arg Factor::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, Va
 				info = local.get_info_by_name(name);
 				from_local = true;
 			}
-			else
+			else if (c_local->have_name(name))
+			{
+				ConstInfo* c_info = c_local->get_info_by_name(name);
+				if (c_info->type == 0)
+				{
+					Arg* a = new Arg(ArgType::INT, c_info->value_int);
+					return a;
+				}
+				else
+				{
+					Arg* a = new Arg(ArgType::CHAR, c_info->value_char);
+					return a;
+				}
+			}
+			else if (global.have_name(name))
 			{
 				info = global.get_info_by_name(name);
 				from_local = false;
 			}
-			if (info->dimenation == 0)
+			else
 			{
-				Arg a(ArgType::IDENTIFY, name);
+				ConstInfo* c_info = c_global->get_info_by_name(name);
+				if (c_info->type == 0)
+				{
+					Arg* a = new Arg(ArgType::INT, c_info->value_int);
+					return a;
+				}
+				else
+				{
+					Arg* a = new Arg(ArgType::CHAR, c_info->value_char);
+					return a;
+				}
+			}
+			if (info == NULL || info->dimenation == 0)	// info == NULL == info is const
+			{
+				Arg* a = new Arg(ArgType::IDENTIFY, name);
 				return a;
 			}
 			else if (info->dimenation == 1)
 			{
-				Arg d1 = exps[0].add_to_middle(sentences, local, global);
-				Arg a(ArgType::ARRAY, name, &d1);
+				Arg* d1 = exps[0].add_to_middle(sentences, local, global, c_local, c_global);
+				string new_tmp = local.get_new_tmp();
+				while (global.have_name(new_tmp))
+					new_tmp = local.get_new_tmp();
+				VarInfo* tmp_info = new VarInfo();
+				tmp_info->dimenation = 0;
+				tmp_info->have_initial = false;
+				tmp_info->name_in_low = new_tmp;
+				tmp_info->type = 0;
+				tmp_info->size_in_byte = 4;
+				local.add_in(tmp_info);
+				Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+				MiddleSentence s_mul4(Operation::MULI, d1, new Arg(ArgType::INT, 4), out);
+				sentences.push_back(s_mul4);
+				Arg* a = new Arg(ArgType::ARRAY, name, out);
 				return a;
 			}
 			else if (info->dimenation == 2)
 			{
-				Arg d1 = exps[0].add_to_middle(sentences, local, global);
-				Arg* num = new Arg(ArgType::INT, info->d1);
-				MiddleSentence s_mult(Operation::MULT, &d1, num, &d1);
+				string new_tmp = local.get_new_tmp();
+				while (global.have_name(new_tmp))
+					new_tmp = local.get_new_tmp();
+				VarInfo* tmp_info = new VarInfo();
+				tmp_info->dimenation = 0;
+				tmp_info->have_initial = false;
+				tmp_info->name_in_low = new_tmp;
+				tmp_info->type = 0;
+				tmp_info->size_in_byte = 4;
+				local.add_in(tmp_info);
+				Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+				Arg* d1 = exps[0].add_to_middle(sentences, local, global, c_local, c_global);
+				Arg* num = new Arg(ArgType::INT, info->d2);
+				MiddleSentence s_mult(Operation::MULI, d1, num, out);
 				sentences.push_back(s_mult);
-				Arg d2 = exps[1].add_to_middle(sentences, local, global);
-				MiddleSentence s_add(Operation::ADD, &d1, &d2, &d1);
+				Arg* d2 = exps[1].add_to_middle(sentences, local, global, c_local, c_global);
+				MiddleSentence s_add(Operation::ADD, out, d2, out);
 				sentences.push_back(s_add);
-				Arg a(ArgType::ARRAY, name, &d1);
+				MiddleSentence s_mul4(Operation::MULI, out, new Arg(ArgType::INT, 4), out);
+				sentences.push_back(s_mul4);
+				Arg* a = new Arg(ArgType::ARRAY, name, out);
 				return a;
 			}
 			else
 			{
 				printf("Dimension bigger then 2!");
-				Arg a(ArgType::NONE, '\0');
+				Arg* a = new Arg();
 				return a;
 			}
 		}
 		else //format as "(exp)"
 		{
-			return exps[0].add_to_middle(sentences, local, global);
+			return exps[0].add_to_middle(sentences, local, global, c_local, c_global);
 		}
 	}
 }
@@ -2677,40 +2780,13 @@ string Item::to_string()
 	return for_return;
 }
 
-Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global)
+Arg* Item::add_to_middle(
+	vector<MiddleSentence>& sentences, 
+	VarTable& local, VarTable& global,
+	ConstTable* c_local, ConstTable* c_global)
 {
 	if (signs.size() == 0)
-		return factors[0].add_to_middle(sentences, local, global);
-	/*
-	unsigned int i;
-	Arg last = factors[0].add_to_middle(sentences, local, global);
-	for (i = 0; i < signs.size(); i++)
-	{
-		string new_tmp = local.get_new_tmp();
-		while (global.have_name(new_tmp))
-			new_tmp = local.get_new_tmp();
-		VarInfo* tmp_info = new VarInfo();
-		tmp_info->dimenation = 0;
-		tmp_info->have_initial = false;
-		tmp_info->name_in_low = new_tmp;
-		tmp_info->type = 0;
-		tmp_info->size_in_byte = 4;
-		local.add_in(tmp_info);
-		Arg out(ArgType::IDENTIFY, new_tmp);
-		Arg a2 = factors[i + 1].add_to_middle(sentences, local, global);
-		if (signs[i].get_type() == TypeEnum::MULT)
-		{
-			MiddleSentence s(Operation::MULT, &last, &a2, &out);
-			sentences.push_back(s);
-		}
-		else
-		{
-			MiddleSentence s(Operation::DIV, &last, &a2, &out);
-			sentences.push_back(s);
-		}
-		last = out;
-	}
-	*/
+		return factors[0].add_to_middle(sentences, local, global, c_local, c_global);
 	string new_tmp = local.get_new_tmp();
 	while (global.have_name(new_tmp))
 		new_tmp = local.get_new_tmp();
@@ -2722,31 +2798,31 @@ Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarT
 	tmp_info->size_in_byte = 4;
 	local.add_in(tmp_info);
 	Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
-	Arg fac0 = factors[0].add_to_middle(sentences, local, global);
-	Arg fac1 = factors[1].add_to_middle(sentences, local, global);
-	if (fac1.get_type() == ArgType::CHAR || fac1.get_type() == ArgType::INT)
+	Arg* fac0 = factors[0].add_to_middle(sentences, local, global, c_local, c_global);
+	Arg* fac1 = factors[1].add_to_middle(sentences, local, global, c_local, c_global);
+	if (fac1->get_type() == ArgType::CHAR || fac1->get_type() == ArgType::INT)
 	{
 		if (signs[0].get_type() == TypeEnum::MULT)
 		{
-			MiddleSentence s(Operation::MULI, &fac0, &fac1, out);
+			MiddleSentence s(Operation::MULI, fac0, fac1, out);
 			sentences.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::DIVI, &fac0, &fac1, out);
+			MiddleSentence s(Operation::DIVI, fac0, fac1, out);
 			sentences.push_back(s);
 		}
 	}
-	else if (fac0.get_type() == ArgType::CHAR || fac0.get_type() == ArgType::INT)
+	else if (fac0->get_type() == ArgType::CHAR || fac0->get_type() == ArgType::INT)
 	{
 		if (signs[0].get_type() == TypeEnum::MULT)
 		{
-			MiddleSentence s(Operation::MULI, &fac1, &fac0, out);
+			MiddleSentence s(Operation::MULI, fac1, fac0, out);
 			sentences.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::DIV, &fac1, &fac0, out);
+			MiddleSentence s(Operation::DIV, fac1, fac0, out);
 			sentences.push_back(s);
 		}
 	}
@@ -2754,29 +2830,29 @@ Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarT
 	{
 		if (signs[0].get_type() == TypeEnum::MULT)
 		{
-			MiddleSentence s(Operation::MULT, &fac0, &fac1, out);
+			MiddleSentence s(Operation::MULT, fac0, fac1, out);
 			sentences.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::DIV, &fac0, &fac1, out);
+			MiddleSentence s(Operation::DIV, fac0, fac1, out);
 			sentences.push_back(s);
 		}
 	}
 	unsigned int i;
 	for (i = 1; i < signs.size(); i++)
 	{
-		Arg fac2 = factors[i + 1].add_to_middle(sentences, local, global);
-		if (fac2.get_type() == ArgType::CHAR || fac2.get_type() == ArgType::INT)
+		Arg* fac2 = factors[i + 1].add_to_middle(sentences, local, global, c_local, c_global);
+		if (fac2->get_type() == ArgType::CHAR || fac2->get_type() == ArgType::INT)
 		{
 			if (signs[i].get_type() == TypeEnum::MULT)
 			{
-				MiddleSentence s(Operation::MULI, out, &fac2, out);
+				MiddleSentence s(Operation::MULI, out, fac2, out);
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::DIVI, out, &fac2, out);
+				MiddleSentence s(Operation::DIVI, out, fac2, out);
 				sentences.push_back(s);
 			}
 		}
@@ -2784,17 +2860,17 @@ Arg Item::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarT
 		{
 			if (signs[i].get_type() == TypeEnum::MULT)
 			{
-				MiddleSentence s(Operation::MULT, out, &fac2, out);
+				MiddleSentence s(Operation::MULT, out, fac2, out);
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::DIV, out, &fac2, out);
+				MiddleSentence s(Operation::DIV, out, fac2, out);
 				sentences.push_back(s);
 			}
 		}
 	}
-	return *out;
+	return out;
 }
 
 int Expression::read_in(Lexer& lexer)
@@ -2859,28 +2935,34 @@ string Expression::to_string()
 	return for_return;
 }
 
-Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local, VarTable& global)
+Arg* Expression::add_to_middle(
+	vector<MiddleSentence>& sentences, 
+	VarTable& local, VarTable& global,
+	ConstTable* c_local, ConstTable* c_global)
 {
-	Arg arg1 = items[0].add_to_middle(sentences, local, global);
+	Arg* arg1 = items[0].add_to_middle(sentences, local, global, c_local, c_global);
 	unsigned int i_sign = 0;
 	unsigned int i_item = 1;
-	if (have_pre_sign && signs[0].get_type() == TypeEnum::MINU)
+	if (have_pre_sign)
 	{
 		i_sign++;
-		string new_tmp = local.get_new_tmp();
-		while (global.have_name(new_tmp))
-			new_tmp = local.get_new_tmp();
-		VarInfo* tmp_info = new VarInfo();
-		tmp_info->dimenation = 0;
-		tmp_info->have_initial = false;
-		tmp_info->name_in_low = new_tmp;
-		tmp_info->type = 0;
-		tmp_info->size_in_byte = 4;
-		local.add_in(tmp_info);
-		Arg out(ArgType::IDENTIFY, new_tmp);
-		MiddleSentence s(Operation::NEG, &arg1, new Arg(), &out);
-		sentences.push_back(s);
-		arg1 = out;
+		if (signs[0].get_type() == TypeEnum::MINU)
+		{
+			string new_tmp = local.get_new_tmp();
+			while (global.have_name(new_tmp))
+				new_tmp = local.get_new_tmp();
+			VarInfo* tmp_info = new VarInfo();
+			tmp_info->dimenation = 0;
+			tmp_info->have_initial = false;
+			tmp_info->name_in_low = new_tmp;
+			tmp_info->type = 0;
+			tmp_info->size_in_byte = 4;
+			local.add_in(tmp_info);
+			Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+			MiddleSentence s(Operation::NEG, arg1, NULL, out);
+			sentences.push_back(s);
+			arg1 = out;
+		}
 	}
 	if (items.size() == 1)
 		return arg1;
@@ -2894,44 +2976,44 @@ Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local
 	tmp_info->type = 0;
 	tmp_info->size_in_byte = 4;
 	local.add_in(tmp_info);
-	Arg tmp(ArgType::IDENTIFY, new_tmp);
-	Arg arg2 = items[i_item].add_to_middle(sentences, local, global);
-	if (arg2.get_type() == ArgType::CHAR || arg2.get_type() == ArgType::INT)
+	Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp);
+	Arg* arg2 = items[1].add_to_middle(sentences, local, global, c_local, c_global);
+	if (arg2->get_type() == ArgType::CHAR || arg2->get_type() == ArgType::INT)
 	{
-		if (signs[0].get_type() == TypeEnum::PLUS)
+		if (signs[i_sign].get_type() == TypeEnum::PLUS)
 		{
-			MiddleSentence s(Operation::ADDI, &arg1, &arg2, &tmp);
+			MiddleSentence s(Operation::ADDI, arg1, arg2, tmp);
 			sentences.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::SUBI, &arg1, &arg2, &tmp);
+			MiddleSentence s(Operation::SUBI, arg1, arg2, tmp);
 			sentences.push_back(s);
 		}
 	}
-	else if (arg1.get_type() == ArgType::CHAR || arg1.get_type() == ArgType::INT)
+	else if (arg1->get_type() == ArgType::CHAR || arg1->get_type() == ArgType::INT)
 	{
-		if (signs[0].get_type() == TypeEnum::PLUS)
+		if (signs[i_sign].get_type() == TypeEnum::PLUS)
 		{
-			MiddleSentence s(Operation::ADDI, &arg2, &arg1, &tmp);
+			MiddleSentence s(Operation::ADDI, arg2, arg1, tmp);
 			sentences.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::SUB, &arg1, &arg2, &tmp);
+			MiddleSentence s(Operation::SUB, arg1, arg2, tmp);
 			sentences.push_back(s);
 		}
 	}
 	else
 	{
-		if (signs[0].get_type() == TypeEnum::PLUS)
+		if (signs[i_sign].get_type() == TypeEnum::PLUS)
 		{
-			MiddleSentence s(Operation::ADD, &arg1, &arg2, &tmp);
+			MiddleSentence s(Operation::ADD, arg1, arg2, tmp);
 			sentences.push_back(s);
 		}
 		else
 		{
-			MiddleSentence s(Operation::SUB, &arg1, &arg2, &tmp);
+			MiddleSentence s(Operation::SUB, arg1, arg2, tmp);
 			sentences.push_back(s);
 		}
 	}
@@ -2939,18 +3021,18 @@ Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local
 	i_item++;
 	for (; i_sign < signs.size(); i_sign++)
 	{
-		Arg a2 = items[i_item].add_to_middle(sentences, local, global);
+		Arg* a2 = items[i_item].add_to_middle(sentences, local, global, c_local, c_global);
 		i_item++;
-		if (a2.get_type() == ArgType::INT || a2.get_type() == ArgType::CHAR)
+		if (a2->get_type() == ArgType::INT || a2->get_type() == ArgType::CHAR)
 		{
 			if (signs[i_sign].get_type() == TypeEnum::PLUS)
 			{
-				MiddleSentence s(Operation::ADDI, &tmp, &a2, &tmp);
+				MiddleSentence s(Operation::ADDI, tmp, a2, tmp);
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::SUBI, &tmp, &a2, &tmp);
+				MiddleSentence s(Operation::SUBI, tmp, a2, tmp);
 				sentences.push_back(s);
 			}
 		}
@@ -2958,61 +3040,16 @@ Arg Expression::add_to_middle(vector<MiddleSentence>& sentences, VarTable& local
 		{
 			if (signs[i_sign].get_type() == TypeEnum::PLUS)
 			{
-				MiddleSentence s(Operation::ADD, &tmp, &a2, &tmp);
+				MiddleSentence s(Operation::ADD, tmp, a2, tmp);
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::SUB, &tmp, &a2, &tmp);
+				MiddleSentence s(Operation::SUB, tmp, a2, tmp);
 				sentences.push_back(s);
 			}
 		}
 	}
-	/*
-	for (; i_sign < signs.size(); i_sign++)
-	{
-		string new_tmp = local.get_new_tmp();
-		while (global.have_name(new_tmp))
-			new_tmp = local.get_new_tmp();
-		VarInfo* tmp_info = new VarInfo();
-		tmp_info->dimenation = 0;
-		tmp_info->have_initial = false;
-		tmp_info->name_in_low = new_tmp;
-		tmp_info->type = 0;
-		tmp_info->size_in_byte = 4;
-		local.add_in(tmp_info);
-		Arg out(ArgType::IDENTIFY, new_tmp);
-		Arg a2 = items[i_item].add_to_middle(sentences, local, global);
-		i_item++;
-		if (a2.get_type() == ArgType::INT || a2.get_type() == ArgType::CHAR)
-		{
-			if (signs[i_sign].get_type() == TypeEnum::PLUS)
-			{
-				MiddleSentence s(Operation::ADDI, &arg1, &a2, &out);
-				sentences.push_back(s);
-			}
-			else
-			{
-				MiddleSentence s(Operation::SUBI, &arg1, &a2, &out);
-				sentences.push_back(s);
-			}
-		}
-		else
-		{
-			if (signs[i_sign].get_type() == TypeEnum::PLUS)
-			{
-				MiddleSentence s(Operation::ADD, &arg1, &a2, &out);
-				sentences.push_back(s);
-			}
-			else
-			{
-				MiddleSentence s(Operation::SUB, &arg1, &a2, &out);
-				sentences.push_back(s);
-			}
-		}
-		arg1 = out;
-	}
-	*/
 	return tmp;
 }
 
@@ -3112,7 +3149,10 @@ string ParameterTable::to_string()
 	string for_return;
 	for_return.clear();
 	if (is_empty)
+	{
+		for_return += "<参数表>\n";
 		return for_return;
+	}
 	int i;
 	for (i = 0; i < count - 1; i++)
 	{
