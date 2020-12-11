@@ -434,7 +434,7 @@ string MiddleSentence::to_mips
 			for_return += Mips::addi(29, 29, -4);							//$sp ready
 			for_return += Mips::jal("func_" + arg1->get_id() + "_begin");	//jump
 			for_return += Mips::lw(30, 0, 29);								//get $fp back
-			for_return += Mips::addi(29, 29, 4 + all_code->get_para_size_by_name(arg1->get_id()));
+			for_return += Mips::addi(29, 29, 4 + func_para_size);
 																			//pop paras and $fp from stack
 			func_para_size -= all_code->get_para_size_by_name(arg1->get_id());
 			break;

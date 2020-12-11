@@ -315,6 +315,25 @@ IdentifyType IdentifyTable::get_type_by_name(WordInfo* id)
 	}
 }
 
+void IdentifyTable::set_active_block_by_name(string name)
+{
+	string name_low = name;
+	transform(name_low.begin(), name_low.end(), name_low.begin(), ::tolower);
+	unsigned int i;
+	for (i = 0; i < blocks.size(); i++)
+	{
+		string block_low = blocks[i]->get_func_name();
+		transform(block_low.begin(), block_low.end(), block_low.begin(), ::tolower);
+		if (name_low == block_low)
+		{
+			active_block = i;
+			return;
+		}
+	}
+	printf("Unfound block of name: %s\n", name_low.c_str());
+	return;
+}
+
 IdentifyProperty IdentifyTable::get_property_by_name(WordInfo* id)
 {
 	// use have_var_const to check first

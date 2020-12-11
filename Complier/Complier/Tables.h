@@ -93,6 +93,7 @@ public:
 
 	static bool have_var_const(WordInfo* id);
 	static IdentifyType get_type_by_name(WordInfo* id);
+	static void set_active_block_by_name(string name);
 	static IdentifyProperty get_property_by_name(WordInfo* id);
 
 	static bool have_func(WordInfo* func_id);

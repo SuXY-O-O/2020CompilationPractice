@@ -3,6 +3,8 @@
 
 void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 {
+	if (this->name_in_low != "main")
+		IdentifyTable::set_active_block_by_name(this->name_in_low);
 	unsigned int i;
 	for (i = 0; i < sent.size(); i++)
 	{
@@ -295,6 +297,7 @@ int MiddleFunction::get_chang_reg()
 
 void MiddleFunction::orignaize_one_reg(Arg* a, bool is_save)
 {
+	// TODO:: all from and to stack now
 	if (a->get_type() == ArgType::ARRAY)
 		orignaize_one_reg(a->get_offset(), false);
 	int target_reg = check_exit_arg(a);
@@ -303,7 +306,7 @@ void MiddleFunction::orignaize_one_reg(Arg* a, bool is_save)
 		if (is_save)
 			a->set_target_reg(target_reg, true);
 		else
-			a->set_target_reg(target_reg, false);
+			a->set_target_reg(target_reg, true);//
 		//now_arg[target_reg] = a;
 		reg_need_save[target_reg] = true;
 		return;
