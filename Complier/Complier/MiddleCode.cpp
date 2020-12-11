@@ -1,9 +1,11 @@
 #include "MiddleCode.h"
 #include "Mips.h"
 
+string global_mf_name = "__global";
+
 void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 {
-	if (this->name_in_low != "main")
+	if (this->name_in_low != global_mf_name)
 		IdentifyTable::set_active_block_by_name(this->name_in_low);
 	unsigned int i;
 	for (i = 0; i < sent.size(); i++)
@@ -583,7 +585,7 @@ void MiddleCode::print_mips_to_file(string file_name)
 	out << "\n";
 	// .text
 	out << ".text\n";
-	MiddleFunction tmp_global("__global", global_const, global_var);
+	MiddleFunction tmp_global(global_mf_name, global_const, global_var);
 	tmp_global.pre_orgnaize_reg(m_sentences);
 	unsigned int i;
 	int func_para_size = 0;

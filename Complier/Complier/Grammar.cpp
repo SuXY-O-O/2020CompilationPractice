@@ -1120,7 +1120,23 @@ vector<MiddleSentence> SentencePrint::add_to_middle
 			new_tmp = table.get_label();
 		StringInfo* info = new StringInfo();
 		info->name_in_low = new_tmp;
-		info->value = zi_fu.get_input_string();
+		string origin = zi_fu.get_input_string();
+		string needed;
+		needed.clear();
+		unsigned int i;
+		for (i = 0; i < origin.size(); i++)
+		{
+			if (origin[i] == '\\')
+			{
+				needed.push_back('\\');
+				needed.push_back('\\');
+			}
+			else
+			{
+				needed.push_back(origin[i]);
+			}
+		}
+		info->value = needed;
 		table.add_in(info);
 		Arg* a = new Arg(ArgType::IDENTIFY, new_tmp);
 		MiddleSentence s(Operation::P_STR, a, NULL, NULL);
@@ -2564,7 +2580,8 @@ IdentifyType Factor::check_type()
 	{
 		if (ids[0].get_type() == TypeEnum::LPARENT)
 		{
-			return exps[0].check_type();
+			return IdentifyType::INT;
+			//return exps[0].check_type();
 		}
 		else
 		{
