@@ -112,6 +112,10 @@ public :
 		target_reg = reg;
 		need_stack = n_s;
 	}
+	void set_need_stack(bool b)
+	{
+		need_stack = b;
+	}
 	bool operator==(const Arg& a);
 	bool check_need_to_stack()
 	{

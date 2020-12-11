@@ -2165,13 +2165,14 @@ vector<MiddleSentence> SentenceFuZhi::add_to_middle(
 {
 	vector<MiddleSentence> for_return;
 	for_return.clear();
-	VarInfo* left_var;
+	VarInfo* left_var = NULL;
 	if (local.have_name(items[0].get_string_in_low()))
 	{
 		left_var = local.get_info_by_name(items[0].get_string_in_low());
 	}
-	else 
+	else
 	{
+		// left cannot be a const
 		left_var = global.get_info_by_name(items[0].get_string_in_low());
 	}
 	int d = left_var->dimenation;
@@ -2215,7 +2216,7 @@ vector<MiddleSentence> SentenceFuZhi::add_to_middle(
 		Arg* num = new Arg(ArgType::INT, left_var->d2);
 		MiddleSentence s_mult(Operation::MULI, d1, num, out);
 		for_return.push_back(s_mult);
-		Arg* d2 = exps[0].add_to_middle(for_return, local, global, c_local, c_global);
+		Arg* d2 = exps[1].add_to_middle(for_return, local, global, c_local, c_global);
 		MiddleSentence s_add(Operation::ADD, out, d2, out);
 		for_return.push_back(s_add);
 		MiddleSentence s_mul4(Operation::MULI, out, new Arg(ArgType::INT, 4), out);

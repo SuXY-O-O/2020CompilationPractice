@@ -13,11 +13,11 @@ private :
 	VarTable* global_var;
 	VarTable* local_var;
 	bool reg_need_save[32];
-	Arg now_arg[32];
+	Arg* now_arg[32];
 	void read_yu_ju(vector<Sentence> sent, StringTable& strings);
 	string mips_begin_func();
 	string mips_end_func();
-	int check_exit_arg(Arg a);
+	int check_exit_arg(Arg* a);
 	int get_empty_reg();
 	unsigned int reg_count = 0;
 	int get_chang_reg();

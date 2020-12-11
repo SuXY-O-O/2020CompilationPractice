@@ -263,7 +263,7 @@ string MiddleFunction::mips_end_func()
 	return for_return;
 }
 
-int MiddleFunction::check_exit_arg(Arg a)
+int MiddleFunction::check_exit_arg(Arg* a)
 {
 	unsigned int i;
 	for (i = 5; i <= 25; i++)	//a1-a3, t0-t9, s0-s7
@@ -280,7 +280,7 @@ int MiddleFunction::get_empty_reg()
 	unsigned int i;
 	for (i = 5; i <= 25; i++)
 	{
-		if (now_arg[i].get_type() == ArgType::NONE)
+		if (now_arg[i] == NULL || now_arg[i]->get_type() == ArgType::NONE)
 			return i;
 	}
 	return 0;
@@ -297,22 +297,25 @@ void MiddleFunction::orignaize_one_reg(Arg* a, bool is_save)
 {
 	if (a->get_type() == ArgType::ARRAY)
 		orignaize_one_reg(a->get_offset(), false);
-	int target_reg = check_exit_arg(*a);
+	int target_reg = check_exit_arg(a);
 	if (target_reg != 0)
 	{
 		if (is_save)
 			a->set_target_reg(target_reg, true);
 		else
 			a->set_target_reg(target_reg, false);
-		now_arg[target_reg] = *a;
+		//now_arg[target_reg] = a;
 		reg_need_save[target_reg] = true;
 		return;
 	}
 	target_reg = get_empty_reg();
 	if (target_reg == 0)
+	{
 		target_reg = get_chang_reg();
+		now_arg[target_reg]->set_need_stack(true);
+	}
 	a->set_target_reg(target_reg, true);
-	now_arg[target_reg] = *a;
+	now_arg[target_reg] = a;
 	reg_need_save[target_reg] = true;
 	return;
 }
@@ -324,11 +327,10 @@ MiddleFunction::MiddleFunction(string name, ConstTable* gconst, VarTable* gvar) 
 	local_const = new ConstTable();
 	local_var = new VarTable();
 	int i;
-	Arg empty(ArgType::NONE, '\0');
 	for (i = 0; i < 32; i++)
 	{
 		reg_need_save[i] = false;
-		now_arg[i] = empty;
+		now_arg[i] = NULL;
 	}
 }
 
@@ -383,7 +385,7 @@ void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
 				if (m_sent[i].get_arg1()->get_type() == ArgType::ARRAY)
 					orignaize_one_reg(m_sent[i].get_arg1()->get_offset(), false);
 				m_sent[i].get_arg1()->set_target_reg(4, true);
-				now_arg[4] = *(m_sent[i].get_arg1());
+				now_arg[4] = m_sent[i].get_arg1();
 				reg_need_save[4] = true;
 				break;
 			}

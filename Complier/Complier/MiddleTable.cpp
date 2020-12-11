@@ -236,12 +236,18 @@ string MiddleSentence::save_to_stack
 	if (info->dimenation == 0)
 	{
 		if (from_local)
-			for_return += Mips::sw(arg->get_reg(), info->real_offset, 29);
+		{
+			if (info->is_func_arg)
+				for_return += Mips::sw(arg->get_reg(), info->real_offset, 30);
+			else
+				for_return += Mips::sw(arg->get_reg(), info->real_offset, 29);
+		}	
 		else
 			for_return += Mips::sw(arg->get_reg(), arg->get_id());
 	}
 	else
 	{
+		//dimenation >= 1, cannot be a para for func
 		for_return += load_arg_to_reg(arg->get_offset(), l_const, g_const, l_var, g_var);
 		int reg_offset = arg->get_offset()->get_reg();
 		if (from_local)
