@@ -96,7 +96,8 @@ string Mips::add(int reg_to, int reg_1, int reg_2)
 {
 	string for_return;
 	for_return.clear();
-	for_return += "add $";
+	//for_return += "add $";
+	for_return += "addu $";
 	for_return += std::to_string(reg_to);
 	for_return += ", $";
 	for_return += std::to_string(reg_1);
@@ -110,7 +111,8 @@ string Mips::addi(int reg_to, int reg_from, int i)
 {
 	string for_return;
 	for_return.clear();
-	for_return += "addi $";
+	//for_return += "addi $";
+	for_return += "addiu $";
 	for_return += std::to_string(reg_to);
 	for_return += ", $";
 	for_return += std::to_string(reg_from);
@@ -124,7 +126,8 @@ string Mips::sub(int reg_to, int reg_1, int reg_2)
 {
 	string for_return;
 	for_return.clear();
-	for_return += "sub $";
+	//for_return += "sub $";
+	for_return += "subu $";
 	for_return += std::to_string(reg_to);
 	for_return += ", $";
 	for_return += std::to_string(reg_1);
@@ -138,7 +141,8 @@ string Mips::subi(int reg_to, int reg_from, int i)
 {
 	string for_return;
 	for_return.clear();
-	for_return += "subi $";
+	//for_return += "subi $";
+	for_return += "subiu $";
 	for_return += std::to_string(reg_to);
 	for_return += ", $";
 	for_return += std::to_string(reg_from);
