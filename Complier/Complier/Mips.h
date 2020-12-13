@@ -32,5 +32,6 @@ public:
 	static string jr();
 	static string add_label(string label);
 	static string syscall(int code_in_v0);
+	static string sll(int reg_to, int reg_from, int i);
 };
 

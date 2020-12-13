@@ -17,19 +17,22 @@ private :
 	void read_yu_ju(vector<Sentence> sent, StringTable& strings);
 	string mips_begin_func();
 	string mips_end_func();
-	int check_exit_arg(Arg* a);
+	int check_exit_arg(Arg* a, bool add_opt);
+	void clear_now_arg();
 	int get_empty_reg();
 	unsigned int reg_count = 0;
 	int get_chang_reg();
-	void orignaize_one_reg(Arg* a, bool is_save);
+	void orignaize_one_reg(Arg* a, bool is_save, bool add_opt);
+	vector<MiddleSentence> optimize_immediate_block(vector<MiddleSentence> old);
 public :
 	MiddleFunction(string name, ConstTable* gconst, VarTable* gvar);
 	string get_name();
-	void pre_orgnaize_reg(vector<MiddleSentence> m_sent);
+	void pre_orgnaize_reg(vector<MiddleSentence> m_sent, bool add_opt);
 	void add_func_parameter(ParameterTable table);
 	void read_in_sentences(SentenceFuHe sent, StringTable& strings);
-	string to_mips(StringTable* strings, MiddleCode* all_code);
+	string to_mips(StringTable* strings, MiddleCode* all_code, bool add_opt);
 	int get_para_size();
+	void optimize_immediate_all();
 };
 
 class MiddleCode
@@ -52,7 +55,7 @@ public:
 		m_sentences.clear();
 	}
 	void read_in(Grammar grammar);
-	void print_mips_to_file(string file_name);
+	void print_mips_to_file(string file_name, bool add_opt);
 	int get_para_size_by_name(string name);
 };
 
@@ -67,4 +70,11 @@ namespace jump_label
 	string get_while_label();
 	string get_if_label();
 	string get_switch_label();
+
+	// Case Sensitive Implementation of starts_with()
+	static bool starts_With(const string& src, const string& target); 
+	static std::string for_label = "for";
+	static std::string while_label = "while";
+
+	static int log2(int value);
 }

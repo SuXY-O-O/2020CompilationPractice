@@ -9,6 +9,7 @@ const string in_file_name = "testfile.txt";
 const string out_lexer = "output_lexer.txt";
 const string out_file_name = "output.txt";
 const string error_file = "error.txt";
+const bool add_optimization = false;
 
 int main()
 {
@@ -29,6 +30,6 @@ int main()
 		lexer.print_to_file(out_lexer);
 		grammar.print_to_file(out_file_name);
 		middle.read_in(grammar);
-		middle.print_mips_to_file("mips.txt");
+		middle.print_mips_to_file("mips.txt", add_optimization);
 	}
 }

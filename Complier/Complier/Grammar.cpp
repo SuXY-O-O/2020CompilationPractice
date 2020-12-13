@@ -1138,7 +1138,7 @@ vector<MiddleSentence> SentencePrint::add_to_middle
 		}
 		info->value = needed;
 		table.add_in(info);
-		Arg* a = new Arg(ArgType::IDENTIFY, new_tmp);
+		Arg* a = new Arg(ArgType::IDENTIFY, new_tmp, true);
 		MiddleSentence s(Operation::P_STR, a, NULL, NULL);
 		for_return.push_back(s);
 	}
@@ -1432,7 +1432,7 @@ Arg* SentenceDiaoYong::add_to_middle
 		tmp_info->type = 0;
 		tmp_info->size_in_byte = 4;
 		local.add_in(tmp_info);
-		Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp);
+		Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp, true);
 		MiddleSentence ret(Operation::LOAD_RET, tmp, NULL, NULL);
 		sentences.push_back(ret);
 		return tmp;
@@ -2210,7 +2210,7 @@ vector<MiddleSentence> SentenceFuZhi::add_to_middle(
 		tmp_info->type = 0;
 		tmp_info->size_in_byte = 4;
 		local.add_in(tmp_info);
-		Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+		Arg* out = new Arg(ArgType::IDENTIFY, new_tmp, true);
 		MiddleSentence s_mul4(Operation::MULI, offset, new Arg(ArgType::INT, 4), out);
 		for_return.push_back(s_mul4);
 		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), out);
@@ -2227,7 +2227,7 @@ vector<MiddleSentence> SentenceFuZhi::add_to_middle(
 		tmp_info->type = 0;
 		tmp_info->size_in_byte = 4;
 		local.add_in(tmp_info);
-		Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+		Arg* out = new Arg(ArgType::IDENTIFY, new_tmp, true);
 		Arg* d1 = exps[0].add_to_middle(for_return, local, global, c_local, c_global);
 		Arg* num = new Arg(ArgType::INT, left_var->d2);
 		MiddleSentence s_mult(Operation::MULI, d1, num, out);
@@ -2709,7 +2709,7 @@ Arg* Factor::add_to_middle(
 				tmp_info->type = 0;
 				tmp_info->size_in_byte = 4;
 				local.add_in(tmp_info);
-				Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+				Arg* out = new Arg(ArgType::IDENTIFY, new_tmp, true);
 				MiddleSentence s_mul4(Operation::MULI, d1, new Arg(ArgType::INT, 4), out);
 				sentences.push_back(s_mul4);
 				Arg* a = new Arg(ArgType::ARRAY, name, out);
@@ -2727,7 +2727,7 @@ Arg* Factor::add_to_middle(
 				tmp_info->type = 0;
 				tmp_info->size_in_byte = 4;
 				local.add_in(tmp_info);
-				Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+				Arg* out = new Arg(ArgType::IDENTIFY, new_tmp, true);
 				Arg* d1 = exps[0].add_to_middle(sentences, local, global, c_local, c_global);
 				Arg* num = new Arg(ArgType::INT, info->d2);
 				MiddleSentence s_mult(Operation::MULI, d1, num, out);
@@ -2815,7 +2815,7 @@ Arg* Item::add_to_middle(
 	tmp_info->type = 0;
 	tmp_info->size_in_byte = 4;
 	local.add_in(tmp_info);
-	Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+	Arg* out = new Arg(ArgType::IDENTIFY, new_tmp, true);
 	Arg* fac0 = factors[0].add_to_middle(sentences, local, global, c_local, c_global);
 	Arg* fac1 = factors[1].add_to_middle(sentences, local, global, c_local, c_global);
 	if (fac1->get_type() == ArgType::CHAR || fac1->get_type() == ArgType::INT)
@@ -2976,7 +2976,7 @@ Arg* Expression::add_to_middle(
 			tmp_info->type = 0;
 			tmp_info->size_in_byte = 4;
 			local.add_in(tmp_info);
-			Arg* out = new Arg(ArgType::IDENTIFY, new_tmp);
+			Arg* out = new Arg(ArgType::IDENTIFY, new_tmp, true);
 			MiddleSentence s(Operation::NEG, arg1, NULL, out);
 			sentences.push_back(s);
 			arg1 = out;
@@ -2994,7 +2994,7 @@ Arg* Expression::add_to_middle(
 	tmp_info->type = 0;
 	tmp_info->size_in_byte = 4;
 	local.add_in(tmp_info);
-	Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp);
+	Arg* tmp = new Arg(ArgType::IDENTIFY, new_tmp, true);
 	Arg* arg2 = items[1].add_to_middle(sentences, local, global, c_local, c_global);
 	if (arg2->get_type() == ArgType::CHAR || arg2->get_type() == ArgType::INT)
 	{

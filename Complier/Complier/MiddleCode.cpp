@@ -1,6 +1,8 @@
 #include "MiddleCode.h"
 #include "Mips.h"
 
+#include <map>
+
 string global_mf_name = "__global";
 
 void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
@@ -221,14 +223,17 @@ string MiddleFunction::mips_begin_func()
 	else
 	{
 		unsigned int i;
+		int reg_count = 0;
 		for (i = 0; i < 32; i++)
 		{
 			if (reg_need_save[i])
 			{
-				for_return += Mips::addi(29, 29, -4);//$sp = $sp - 4
-				for_return += Mips::sw(i, 0, 29);
+				reg_count += 4;
+				//for_return += Mips::addi(29, 29, -4);//$sp = $sp - 4
+				for_return += Mips::sw(i, -reg_count, 29);
 			}
 		}
+		for_return += Mips::addi(29, 29, -reg_count);
 	}
 	// give space to local var
 	for_return += Mips::addi(29, 29, -local_var->get_stack_size());
@@ -253,29 +258,53 @@ string MiddleFunction::mips_end_func()
 	else
 	{
 		int i;
+		int reg_count = 0;
 		for (i = 31; i >= 0; i--)
 		{
 			if (reg_need_save[i])
 			{
-				for_return += Mips::lw(i, 0, 29);
-				for_return += Mips::addi(29, 29, 4);
+				for_return += Mips::lw(i, reg_count, 29);
+				reg_count += 4;
+				//for_return += Mips::addi(29, 29, 4);
 			}
 		}
+		for_return += Mips::addi(29, 29, reg_count);
 	}
 	for_return += Mips::jr();
 	for_return += "\n";
 	return for_return;
 }
 
-int MiddleFunction::check_exit_arg(Arg* a)
+int MiddleFunction::check_exit_arg(Arg* a, bool add_opt)
 {
 	unsigned int i;
-	for (i = 5; i <= 25; i++)	//a1-a3, t0-t9, s0-s7
+	if (!add_opt)
 	{
-		if (now_arg[i] == a)
-			return i;
+		for (i = 5; i <= 25; i++)	//a1-a3, t0-t9, s0-s7
+		{
+			if (now_arg[i] == a)
+				return i;
+		}
+		return 0;
 	}
-	return 0;
+	else
+	{
+		for (i = 5; i <= 25; i++)	//a1-a3, t0-t9, s0-s7
+		{
+			if (now_arg[i] != NULL && *(now_arg[i]) == *a)
+				return i;
+		}
+		return 0;
+	}
+}
+
+void MiddleFunction::clear_now_arg()
+{
+	int i;
+	for (i = 0; i < 31; i++)
+	{
+		now_arg[i] = NULL;
+	}
 }
 
 int MiddleFunction::get_empty_reg()
@@ -297,19 +326,24 @@ int MiddleFunction::get_chang_reg()
 	return for_return;
 }
 
-void MiddleFunction::orignaize_one_reg(Arg* a, bool is_save)
+void MiddleFunction::orignaize_one_reg(Arg* a, bool is_save, bool add_opt)
 {
-	// TODO:: all from and to stack now
 	if (a->get_type() == ArgType::ARRAY)
-		orignaize_one_reg(a->get_offset(), false);
-	int target_reg = check_exit_arg(a);
+		orignaize_one_reg(a->get_offset(), false, add_opt);
+	if (a->is_static() && a->get_value() == 0)
+	{
+		a->set_target_reg(0, false);
+		return;
+	}
+	int target_reg = check_exit_arg(a, add_opt);
 	if (target_reg != 0)
 	{
 		if (is_save)
 			a->set_target_reg(target_reg, true);
+		else if (!add_opt)
+			a->set_target_reg(target_reg, true);
 		else
-			a->set_target_reg(target_reg, true);//
-		//now_arg[target_reg] = a;
+			a->set_target_reg(target_reg, false);
 		reg_need_save[target_reg] = true;
 		return;
 	}
@@ -344,9 +378,10 @@ string MiddleFunction::get_name()
 	return name_in_low;
 }
 
-void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
+void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent, bool add_opt)
 {
 	local_var->count_arg_stack();
+	clear_now_arg();
 	unsigned int i;
 	for (i = 0; i < m_sent.size(); i++)
 	{
@@ -357,30 +392,31 @@ void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
 			case Operation::MULT:
 			case Operation::DIV:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
-				orignaize_one_reg(m_sent[i].get_arg2(), false);
-				orignaize_one_reg(m_sent[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
+				orignaize_one_reg(m_sent[i].get_arg2(), false, add_opt);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true, add_opt);
 				break;
 			}
 			case Operation::ADDI:
 			case Operation::SUBI:
 			case Operation::MULI:
 			case Operation::DIVI:
+			case Operation::SLL:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
-				orignaize_one_reg(m_sent[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true, add_opt);
 				break;
 			}
 			case Operation::NEG:
 			case Operation::ASSIGN:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
-				orignaize_one_reg(m_sent[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true, add_opt);
 				break;
 			}
 			case Operation::INIT:
 			{
-				orignaize_one_reg(m_sent[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true, add_opt);
 				break;
 			}
 			case Operation::P_STR:
@@ -388,7 +424,7 @@ void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
 			case Operation::P_CHAR:
 			{
 				if (m_sent[i].get_arg1()->get_type() == ArgType::ARRAY)
-					orignaize_one_reg(m_sent[i].get_arg1()->get_offset(), false);
+					orignaize_one_reg(m_sent[i].get_arg1()->get_offset(), false, add_opt);
 				m_sent[i].get_arg1()->set_target_reg(4, true);
 				now_arg[4] = m_sent[i].get_arg1();
 				reg_need_save[4] = true;
@@ -397,23 +433,23 @@ void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
 			case Operation::S_CHAR:
 			case Operation::S_INT:
 			{
-				orignaize_one_reg(m_sent[i].get_arg_out(), true);
+				orignaize_one_reg(m_sent[i].get_arg_out(), true, add_opt);
 				break;
 			}
 			case Operation::SAVE_PARA:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
 				break;
 			}
 			case Operation::SAVE_RET:
 			case Operation::LOAD_RET:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
 				break;
 			}
 			case Operation::BEQI:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
 				break;
 			}
 			case Operation::BEQ:
@@ -423,8 +459,8 @@ void MiddleFunction::pre_orgnaize_reg(vector<MiddleSentence> m_sent)
 			case Operation::BLE:
 			case Operation::BLT:
 			{
-				orignaize_one_reg(m_sent[i].get_arg1(), false);
-				orignaize_one_reg(m_sent[i].get_arg2(), false);
+				orignaize_one_reg(m_sent[i].get_arg1(), false, add_opt);
+				orignaize_one_reg(m_sent[i].get_arg2(), false, add_opt);
 				break;
 			}
 			case Operation::START_FUNC:
@@ -479,17 +515,23 @@ void MiddleFunction::read_in_sentences(SentenceFuHe sent, StringTable& strings)
 		m_sentences.insert(m_sentences.end(), m.begin(), m.end());
 	}
 	read_yu_ju(sent.get_sentence(), strings);
+	/*
 	printf("\nFunc_%s:\n", this->name_in_low.c_str());
 	unsigned int i;
 	for (i = 0; i < m_sentences.size(); i++)
 	{
 		printf("%s", m_sentences[i].to_string().c_str());
 	}
+	*/
 }
 
-string MiddleFunction::to_mips(StringTable* strings, MiddleCode* all_code)
+string MiddleFunction::to_mips(StringTable* strings, MiddleCode* all_code, bool add_opt)
 {
-	pre_orgnaize_reg(this->m_sentences);
+	if (!add_opt)
+		pre_orgnaize_reg(this->m_sentences, false);
+	else
+		optimize_immediate_all();
+	printf("\nFunc_%s:\n", this->name_in_low.c_str());
 	string for_return;
 	for_return.clear();
 	for_return += mips_begin_func();
@@ -498,6 +540,7 @@ string MiddleFunction::to_mips(StringTable* strings, MiddleCode* all_code)
 	int func_para_size = 0;
 	for (i = 0; i < m_sentences.size(); i++)
 	{
+		printf("%s", m_sentences[i].to_string().c_str());
 		for_return += m_sentences[i].to_mips(
 			local_const, global_const, local_var, global_var, 
 			strings, all_code, func_para_size);
@@ -538,6 +581,670 @@ string MiddleCode::mips_exit_func()
 	return for_return;
 }
 
+vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSentence> old)
+{
+	vector<MiddleSentence> fig_ass;
+	fig_ass.clear();
+	unsigned int i;
+	for (i = 0; i < old.size(); i++)
+	{
+		switch (old[i].get_operation())
+		{
+			case Operation::ADD:
+			case Operation::SUB:
+			case Operation::MULT:
+			case Operation::DIV:
+			case Operation::ADDI:
+			case Operation::SUBI:
+			case Operation::MULI:
+			case Operation::DIVI:
+			{
+				if (i + 1 < old.size() && old[i + 1].get_operation() == Operation::ASSIGN)
+				{
+					if (*(old[i].get_arg_out()) == *(old[i + 1].get_arg1()))
+					{
+						//printf("inside\n");
+						MiddleSentence changed = old[i];
+						changed.set_arg_out(old[i + 1].get_arg_out());
+						fig_ass.push_back(changed);
+						i++;
+					}
+					else
+					{
+						fig_ass.push_back(old[i]);
+					}
+				}
+				else
+					fig_ass.push_back(old[i]);
+				break;
+			}
+			default:
+			{
+				fig_ass.push_back(old[i]);
+				break;
+			}
+		}
+	}
+	vector<MiddleSentence> opted;
+	opted.clear();
+	map<Arg, int> arg_to_val;
+	arg_to_val.clear();
+	for (i = 0; i < fig_ass.size(); i++)
+	{
+		MiddleSentence this_sent = fig_ass[i];
+		Arg* ar1 = this_sent.get_arg1();
+		if (ar1 != NULL && ar1->get_type() == ArgType::ARRAY)
+		{
+			if (arg_to_val.count( *(ar1->get_offset() )) > 0)
+			{
+				Arg* o = new Arg(ArgType::INT, arg_to_val[*(ar1->get_offset())]);
+				ar1->set_offset(o);
+				this_sent.get_arg1()->set_offset(o);
+			}
+		}
+		Arg* ar2 = this_sent.get_arg2();
+		if (ar2 != NULL && ar2->get_type() == ArgType::ARRAY)
+		{
+			if (arg_to_val.count(*(ar2->get_offset())) > 0)
+			{
+				Arg* o = new Arg(ArgType::INT, arg_to_val[*(ar2->get_offset())]);
+				ar1->set_offset(o);
+				this_sent.get_arg2()->set_offset(o);
+			}
+		}
+		Arg* out = this_sent.get_arg_out();
+		if (out != NULL && out->get_type() == ArgType::ARRAY)
+		{
+			if (arg_to_val.count(*(out->get_offset())) > 0)
+			{
+				Arg* o = new Arg(ArgType::INT, arg_to_val[*(out->get_offset())]);
+				ar1->set_offset(o);
+				this_sent.get_arg_out()->set_offset(o);
+			}
+		}
+		switch (fig_ass[i].get_operation())
+		{
+			case Operation::ADD:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}	
+				if (ar1->is_static() && ar2->is_static())
+				{
+					//TODO : maybe need to consider overflow
+					long long int tmp = (long long int)ar1->get_value() + (long long int)ar2->get_value();
+					int value = (int)(tmp & 0xffffffff);
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar1->is_static() && arg_to_val.count(*ar2) > 0)
+				{
+					long long int tmp = (long long int)ar1->get_value() + (long long int)arg_to_val[*ar2];
+					int value = (int)(tmp & 0xffffffff);
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && ar2->is_static())
+				{
+					int value = arg_to_val[*ar1] + ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && arg_to_val.count(*ar2) > 0)
+				{
+					int value = arg_to_val[*ar1] + arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
+				{
+					arg_to_val.erase(*out);
+					int t;
+					if (ar2->is_static())
+						t = ar2->get_value();
+					else
+						t = arg_to_val[*ar2];
+					if (t == 0)
+					{
+						MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::ADDI, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(change);
+					}
+				}
+				else if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
+				{
+					arg_to_val.erase(*out);
+					int t;
+					if (ar1->is_static())
+						t = ar1->get_value();
+					else
+						t = arg_to_val[*ar1];
+					if (t == 0)
+					{
+						MiddleSentence change(Operation::ASSIGN, ar2, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::ADDI, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(change);
+					}
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::ADDI:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static())
+				{
+					int value = ar1->get_value() + ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0)
+				{
+					int value = arg_to_val[*ar1] + ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->get_value() == 0)
+				{
+					arg_to_val.erase(*out);
+					MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+					opted.push_back(change);
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::SUB:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static() && ar2->is_static())
+				{
+					int value = ar1->get_value() - ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar1->is_static() && arg_to_val.count(*ar2) > 0)
+				{
+					int value = ar1->get_value() - arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && ar2->is_static())
+				{
+					int value = arg_to_val[*ar1] - ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && arg_to_val.count(*ar2) > 0)
+				{
+					int value = arg_to_val[*ar1] - arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
+				{
+					arg_to_val.erase(*out);
+					int t;
+					if (ar2->is_static())
+						t = ar2->get_value();
+					else
+						t = arg_to_val[*ar2];
+					if (t == 0)
+					{
+						MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::SUBI, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(change);
+					}
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::SUBI:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static())
+				{
+					int value = ar1->get_value() - ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0)
+				{
+					int value = arg_to_val[*ar1] - ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->get_value() == 0)
+				{
+					arg_to_val.erase(*out);
+					MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+					opted.push_back(change);
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::MULT:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static() && ar2->is_static())
+				{
+					int value = ar1->get_value() * ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar1->is_static() && arg_to_val.count(*ar2) > 0)
+				{
+					int value = ar1->get_value() * arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && ar2->is_static())
+				{
+					int value = arg_to_val[*ar1] * ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && arg_to_val.count(*ar2) > 0)
+				{
+					int value = arg_to_val[*ar1] * arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
+				{
+					arg_to_val.erase(*out);
+					int t;
+					if (ar2->is_static())
+						t = ar2->get_value();
+					else
+						t = arg_to_val[*ar2];
+					int value = t;
+					t = jump_label::log2(t);
+					if (value == 0)
+					{
+						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
+						opted.push_back(change);
+					}
+					else if (t == -1)
+					{
+						MiddleSentence change(Operation::MULI, ar1, new Arg(ArgType::INT, value), out);
+						opted.push_back(change);
+					}
+					else if (t == 0)
+					{
+						MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(change);
+					}
+				}
+				else if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
+				{
+					arg_to_val.erase(*out);
+					int t;
+					if (ar1->is_static())
+						t = ar1->get_value();
+					else
+						t = arg_to_val[*ar1];
+					int value = t;
+					t = jump_label::log2(t);
+					if (value == 0)
+					{
+						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
+						opted.push_back(change);
+					}
+					else if (t == -1)
+					{
+						MiddleSentence change(Operation::MULI, ar2, new Arg(ArgType::INT, value), out);
+						opted.push_back(change);
+					}
+					else if (t == 0)
+					{
+						MiddleSentence change(Operation::ASSIGN, ar2, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::SLL, ar2, new Arg(ArgType::INT, t), out);
+						opted.push_back(change);
+					}
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::MULI:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static())
+				{
+					int value = ar1->get_value() * ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0)
+				{
+					int value = arg_to_val[*ar1] * ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->get_value() == 0)
+				{
+					MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
+					opted.push_back(change);
+				}
+				else if (jump_label::log2(ar2->get_value()) != -1)
+				{
+					arg_to_val.erase(*out);
+					int t = jump_label::log2(ar2->get_value());
+					if (t == 0)
+					{
+						MiddleSentence changed(Operation::ASSIGN, ar1, NULL, out);
+						opted.push_back(changed);
+					}
+					else
+					{
+						MiddleSentence changed(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(changed);
+					}
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::DIV:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static() && ar2->is_static())
+				{
+					int value = ar1->get_value() / ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar1->is_static() && arg_to_val.count(*ar2) > 0)
+				{
+					int value = ar1->get_value() / arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && ar2->is_static())
+				{
+					int value = arg_to_val[*ar1] / ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0 && arg_to_val.count(*ar2) > 0)
+				{
+					int value = arg_to_val[*ar1] / arg_to_val[*ar2];
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
+				{
+					arg_to_val.erase(*out);
+					int t;
+					if (ar2->is_static())
+						t = ar2->get_value();
+					else
+						t = arg_to_val[*ar2];
+					if (t == 1)
+					{
+						MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::DIVI, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(change);
+					}
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::DIVI:
+			{
+				if (ar1 == NULL || ar2 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				if (ar1->is_static())
+				{
+					int value = ar1->get_value() - ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (arg_to_val.count(*ar1) > 0)
+				{
+					int value = arg_to_val[*ar1] - ar2->get_value();
+					arg_to_val[*out] = value;
+					if (!out->is_tmp)
+					{
+						MiddleSentence changed(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(changed);
+					}
+				}
+				else if (ar2->get_value() == 1)
+				{
+					arg_to_val.erase(*out);
+					MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+					opted.push_back(change);
+				}
+				else
+				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::INIT:
+			{
+				if (ar1 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				opted.push_back(this_sent);
+				arg_to_val[*out] = ar1->get_value();
+				break;
+			}
+			case Operation::ASSIGN:
+			{
+				if (ar1 == NULL || out == NULL)
+				{
+					opted.push_back(this_sent);
+					break;
+				}
+				arg_to_val.erase(*out);
+				if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
+				{
+					int t;
+					if (ar1->is_static())
+						t = ar1->get_value();
+					else
+						t = arg_to_val[*ar1];
+					arg_to_val[*out] = t;
+					if (!out->is_tmp)
+					{
+						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, t), NULL, out);
+						opted.push_back(change);
+					}
+				}
+				else
+				{
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			default:
+			{
+				opted.push_back(this_sent);
+				break;
+			}
+		}
+	}
+	this->pre_orgnaize_reg(opted, true);
+	return opted;
+}
+
 void MiddleCode::read_in(Grammar grammar)
 {
 	int g_type = grammar.get_type();
@@ -565,16 +1272,19 @@ void MiddleCode::read_in(Grammar grammar)
 	MiddleFunction* f = new MiddleFunction("main", global_const, global_var);
 	f->read_in_sentences(grammar.get_main().get_sentence(), *all_string);
 	functions.push_back(f);
+	/*
 	unsigned int i;
-	printf("\nInit global:\n");
+	std::printf("\nInit global:\n");
 	for (i = 0; i < m_sentences.size(); i++)
 	{
 		printf("%s", m_sentences[i].to_string().c_str());
 	}
+	*/
 }
 
-void MiddleCode::print_mips_to_file(string file_name)
+void MiddleCode::print_mips_to_file(string file_name, bool add_opt)
 {
+	//TODO
 	global_var->count_arg_stack();
 	ofstream out;
 	out.open(file_name);
@@ -586,11 +1296,13 @@ void MiddleCode::print_mips_to_file(string file_name)
 	// .text
 	out << ".text\n";
 	MiddleFunction tmp_global(global_mf_name, global_const, global_var);
-	tmp_global.pre_orgnaize_reg(m_sentences);
+	tmp_global.pre_orgnaize_reg(m_sentences, false);
 	unsigned int i;
 	int func_para_size = 0;
+	std::printf("\nInit global:\n");
 	for (i = 0; i < m_sentences.size(); i++)
 	{
+		printf("%s", m_sentences[i].to_string().c_str());
 		out << m_sentences[i].to_mips(
 			new ConstTable(), global_const, new VarTable(), global_var, 
 			all_string, this, func_para_size);
@@ -603,7 +1315,7 @@ void MiddleCode::print_mips_to_file(string file_name)
 	// functions
 	for (i = 0; i < functions.size(); i++)
 	{
-		out << functions[i]->to_mips(all_string, this);
+		out << functions[i]->to_mips(all_string, this, add_opt);
 	}
 
 	out.close();
@@ -618,6 +1330,32 @@ int MiddleCode::get_para_size_by_name(string name)
 			return functions[i]->get_para_size();
 	}
 	return -1;
+}
+
+void MiddleFunction::optimize_immediate_all()
+{
+	unsigned int i;
+	vector<MiddleSentence> output;
+	output.clear();
+	vector<MiddleSentence> this_block;
+	this_block.clear();
+	for (i = 0; i < m_sentences.size(); i++)
+	{
+		if (m_sentences[i].get_operation() != Operation::LABEL)
+		{
+			this_block.push_back(m_sentences[i]);
+		}
+		else
+		{
+			vector<MiddleSentence> opted_block = optimize_immediate_block(this_block);
+			output.insert(output.end(), opted_block.begin(), opted_block.end());
+			output.push_back(m_sentences[i]);
+			this_block.clear();
+		}
+	}
+	vector<MiddleSentence> opted_block = optimize_immediate_block(this_block);
+	output.insert(output.end(), opted_block.begin(), opted_block.end());
+	this->m_sentences = output;
 }
 
 string jump_label::get_for_label()
@@ -658,4 +1396,26 @@ string jump_label::get_switch_label()
 	for_return += std::to_string(switch_count);
 	switch_count++;
 	return for_return;
+}
+
+bool jump_label::starts_With(const string& src, const string& target)
+{
+	if (src.find(target) == 0) 
+	{
+		return true;
+	}
+	else 
+	{
+		return false;
+	}
+}
+
+int jump_label::log2(int value)
+{
+	if ((value & (value - 1)) == 0)
+		return -1;
+	if (value == 1)
+		return 0;
+	else
+		return 1 + log2(value >> 1);
 }

@@ -146,7 +146,10 @@ string MiddleSentence::load_arg_to_reg
 	for_return.clear();
 	if (arg->get_type() == ArgType::INT || arg->get_type() == ArgType::CHAR)
 	{
-		for_return += Mips::li(arg->get_reg(), arg->get_value());
+		if (arg->get_value() == 0)
+			arg->set_target_reg(0, false);
+		else
+			for_return += Mips::li(arg->get_reg(), arg->get_value());
 	}
 	else if (arg->get_type() == ArgType::IDENTIFY)
 	{
@@ -268,20 +271,20 @@ string MiddleSentence::to_string()
 {
 	string s;
 	s.clear();
-	s += op_to_str(op);
-	s += "\t";
+	if (out != NULL)
+		s += out->to_string();
+	else
+		s += "_/_";
+	s += "\t=\t";
 	if (arg1 != NULL)
 		s += arg1->to_string();
 	else
 		s += "_/_";
 	s += "\t";
+	s += op_to_str(op);
+	s += "\t";
 	if (arg2 != NULL)
 		s += arg2->to_string();
-	else
-		s += "_/_";
-	s += "\t";
-	if (out != NULL)
-		s += out->to_string();
 	else
 		s += "_/_";
 	s += "\n";
@@ -509,6 +512,13 @@ string MiddleSentence::to_mips
 			for_return += arg1->get_id() + ":\n";
 			break;
 		}
+		case Operation::SLL:
+		{
+			for_return += load_arg_to_reg(arg1, l_const, g_const, l_var, g_var);
+			for_return += Mips::sll(out->get_reg(), arg1->get_reg(), arg2->get_value());
+			for_return += save_to_stack(out, l_const, g_const, l_var, g_var);
+			break;
+		}
 	}
 	return for_return;
 }
@@ -541,7 +551,7 @@ string Arg::to_string()
 	return "_/_";
 }
 
-bool Arg::operator==(const Arg& a)
+bool Arg::operator==(const Arg& a) const
 {
 	if (this->type != a.type)
 		return false;
@@ -558,6 +568,29 @@ bool Arg::operator==(const Arg& a)
 		return false;
 	else
 		return this->identify == a.identify;
+}
+
+bool Arg::operator<(const Arg& a) const
+{
+	if (this->type != a.type)
+	{
+		return ((int)this->type) < ((int)a.type);
+	}	
+	else if (this->type == ArgType::ARRAY)
+	{
+		if (this->identify == a.identify)
+			return *(this->offset) < *(a.offset);
+		else  
+			return this->identify < a.identify;
+	}
+	else if (this->type == ArgType::INT)
+		return this->value_int < a.value_int;
+	else if (this->type == ArgType::CHAR)
+		return this->value_char < a.value_char;
+	else if (this->type == ArgType::NONE)
+		return false;
+	else
+		return this->identify < a.identify;
 }
 
 string op_to_str(Operation op)
@@ -623,6 +656,8 @@ string op_to_str(Operation op)
 		return "BLT";
 	case Operation::LABEL:
 		return "LABEL";
+	case Operation::SLL:
+		return "SLL";
 	}
 	return string();
 }

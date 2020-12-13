@@ -44,7 +44,8 @@ enum class Operation
 	BGT,			// bigger than
 	BLE,			// less or equal
 	BLT,			// less than
-	LABEL
+	LABEL,
+	SLL				// operation:<<
 };
 
 class Arg
@@ -58,6 +59,15 @@ private :
 	int target_reg = 0;
 	bool need_stack = true;
 public :
+	bool is_tmp = false;
+	bool is_static()
+	{
+		if (this->type == ArgType::INT)
+			return true;
+		if (this->type == ArgType::CHAR)
+			return true;
+		return false;
+	}
 	Arg(ArgType t, int value) : type(t), value_int(value)
 	{
 		value_char = 0;
@@ -68,10 +78,11 @@ public :
 		value_int = 0;
 		offset = NULL;
 	};
-	Arg(ArgType t, string id) : type(t), identify(id)
+	Arg(ArgType t, string id, bool _is_tmp = false) : type(t), identify(id)
 	{
 		value_char = 0;
 		value_int = 0;
+		this->is_tmp = _is_tmp;
 		offset = NULL;
 	};
 	Arg(ArgType t, string id, Arg* _offset);
@@ -106,6 +117,10 @@ public :
 	{
 		return offset;
 	}
+	void set_offset(Arg* a)
+	{
+		offset = a;
+	}
 	string to_string();
 	void set_target_reg(int reg, bool n_s)
 	{
@@ -116,7 +131,8 @@ public :
 	{
 		need_stack = b;
 	}
-	bool operator==(const Arg& a);
+	bool operator==(const Arg& a) const;
+	bool operator<(const Arg& a) const;
 	bool check_need_to_stack()
 	{
 		return need_stack;
@@ -249,6 +265,10 @@ public:
 	Arg* get_arg_out()
 	{
 		return out;
+	}
+	void set_arg_out(Arg* _out)
+	{
+		this->out = _out;
 	}
 	Operation get_operation()
 	{

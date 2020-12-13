@@ -348,3 +348,18 @@ string Mips::syscall(int code_in_v0)
 	for_return += "syscall\n";
 	return for_return;
 }
+
+string Mips::sll(int reg_to, int reg_from, int i)
+{
+	string for_return;
+	for_return.clear();
+	//for_return += "subi $";
+	for_return += "sll $";
+	for_return += std::to_string(reg_to);
+	for_return += ", $";
+	for_return += std::to_string(reg_from);
+	for_return += ", ";
+	for_return += std::to_string(i);
+	for_return += "\n";
+	return for_return;
+}
