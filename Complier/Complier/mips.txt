@@ -1,56 +1,822 @@
 .data
-a : .space 4
-_str_1: .asciiz "18231194"
-_str_2: .asciiz "1"
-_str_3: .asciiz "2"
+a : .space 4000
+b : .space 4000
+kernelid : .space 160
 
 .text
-li $5, 115
-sw $5, a
 jal func_main_begin
 li $v0, 10
 syscall
 
+func_myscanf_begin:
+sw $5, -4($29)
+sw $31, -8($29)
+addiu $29, $29, -8
+addiu $29, $29, -4
+
+li $v0, 5
+syscall
+move $5, $2
+sw $5, 0($29)
+move $2, $5
+j func_myscanf_end
+
+func_myscanf_end:
+addiu $29, $29, 4
+lw $31, 0($29)
+lw $5, 4($29)
+addiu $29, $29, 8
+jr $ra
+
+
+func_myprintf_begin:
+sw $4, -4($29)
+sw $31, -8($29)
+addiu $29, $29, -8
+addiu $29, $29, 0
+
+lw $4, 0($30)
+li $v0, 1
+syscall
+li $4, 10
+li $v0, 11
+syscall
+j func_myprintf_end
+
+func_myprintf_end:
+addiu $29, $29, 0
+lw $31, 0($29)
+lw $4, 4($29)
+addiu $29, $29, 8
+jr $ra
+
+
+func_checkrange_begin:
+sw $5, -4($29)
+sw $6, -8($29)
+sw $31, -12($29)
+addiu $29, $29, -12
+addiu $29, $29, -8
+
+while_0_begin:
+lw $5, 0($30)
+li $6, 1073741824
+ble $5, $6, while_0_end
+subiu $5, $5, 1073741824
+sw $5, 0($30)
+j while_0_begin
+while_0_end:
+while_1_begin:
+lw $5, 0($30)
+bge $5, $0, while_1_end
+addiu $5, $5, 1073741824
+sw $5, 0($30)
+j while_1_begin
+while_1_end:
+lw $5, 0($30)
+move $2, $5
+j func_checkrange_end
+
+func_checkrange_end:
+addiu $29, $29, 8
+lw $31, 0($29)
+lw $6, 4($29)
+lw $5, 8($29)
+addiu $29, $29, 12
+jr $ra
+
+
+func_reduce_begin:
+sw $5, -4($29)
+sw $6, -8($29)
+sw $7, -12($29)
+sw $8, -16($29)
+sw $9, -20($29)
+sw $10, -24($29)
+sw $11, -28($29)
+sw $12, -32($29)
+sw $13, -36($29)
+sw $14, -40($29)
+sw $15, -44($29)
+sw $16, -48($29)
+sw $31, -52($29)
+addiu $29, $29, -52
+addiu $29, $29, -172
+
+if_0_begin:
+lw $5, 0($30)
+bne $5, $0, if_0_end
+# function diao yong begin
+lw $6, 4($30)
+lw $7, 8($30)
+addu $8, $6, $7
+sw $8, 8($29)
+sw $8, -4($29)
+addiu $29, $29, -4
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_checkrange_begin
+lw $30, 0($29)
+addiu $29, $29, 8
+move $9, $2
+move $2, $9
+j func_reduce_end
+if_0_end:
+if_1_begin:
+lw $5, 0($30)
+li $6, 1
+bne $5, $6, if_1_end
+li $7, 0
+sw $7, 0($29)
+li $8, 1
+sw $8, 4($29)
+while_2_begin:
+lw $5, 4($29)
+li $6, 1073741824
+bge $5, $6, while_2_end
+if_2_begin:
+lw $5, 4($30)
+lw $6, 4($29)
+div $7, $5, $6
+sw $7, 16($29)
+div $8, $5, $6
+sw $8, 28($29)
+div $9, $8, 2
+sw $9, 24($29)
+sll $9, $9, 1
+sw $9, 24($29)
+subu $10, $7, $9
+sw $10, 20($29)
+lw $11, 8($30)
+div $12, $11, $6
+sw $12, 32($29)
+div $13, $11, $6
+sw $13, 44($29)
+div $14, $13, 2
+sw $14, 40($29)
+sll $14, $14, 1
+sw $14, 40($29)
+subu $15, $12, $14
+sw $15, 36($29)
+bne $10, $15, if_2_else
+lw $16, 0($29)
+sll $16, $16, 1
+sw $16, 0($29)
+j if_2_end
+if_2_else:
+lw $5, 0($29)
+sll $6, $5, 1
+sw $6, 52($29)
+addiu $5, $6, 1
+sw $5, 0($29)
+if_2_end:
+lw $5, 4($29)
+sll $5, $5, 1
+sw $5, 4($29)
+j while_2_begin
+while_2_end:
+lw $5, 0($29)
+move $2, $5
+j func_reduce_end
+if_1_end:
+if_3_begin:
+lw $5, 0($30)
+li $6, 2
+bne $5, $6, if_3_end
+if_4_begin:
+lw $5, 4($30)
+lw $6, 8($30)
+ble $5, $6, if_4_else
+move $2, $5
+j func_reduce_end
+j if_4_end
+if_4_else:
+lw $5, 8($30)
+move $2, $5
+j func_reduce_end
+if_4_end:
+if_3_end:
+if_5_begin:
+lw $5, 0($30)
+li $6, 3
+bne $5, $6, if_5_end
+li $7, 0
+sw $7, 0($29)
+li $8, 1
+sw $8, 4($29)
+while_3_begin:
+lw $5, 4($29)
+li $6, 1073741824
+bge $5, $6, while_3_end
+if_6_begin:
+lw $5, 4($30)
+lw $6, 4($29)
+div $7, $5, $6
+sw $7, 64($29)
+div $8, $5, $6
+sw $8, 76($29)
+div $9, $8, 2
+sw $9, 72($29)
+sll $9, $9, 1
+sw $9, 72($29)
+subu $10, $7, $9
+sw $10, 68($29)
+li $11, 1
+bne $10, $11, if_6_else
+lw $12, 0($29)
+sll $13, $12, 1
+sw $13, 80($29)
+addiu $12, $13, 1
+sw $12, 0($29)
+j if_6_end
+if_6_else:
+if_7_begin:
+lw $5, 8($30)
+lw $6, 4($29)
+div $7, $5, $6
+sw $7, 88($29)
+div $8, $5, $6
+sw $8, 100($29)
+div $9, $8, 2
+sw $9, 96($29)
+sll $9, $9, 1
+sw $9, 96($29)
+subu $10, $7, $9
+sw $10, 92($29)
+li $11, 1
+bne $10, $11, if_7_end
+lw $12, 0($29)
+sll $13, $12, 1
+sw $13, 104($29)
+addiu $12, $13, 1
+sw $12, 0($29)
+if_7_end:
+lw $5, 0($29)
+sll $5, $5, 1
+sw $5, 0($29)
+if_6_end:
+lw $5, 4($29)
+sll $5, $5, 1
+sw $5, 4($29)
+j while_3_begin
+while_3_end:
+lw $5, 0($29)
+move $2, $5
+j func_reduce_end
+if_5_end:
+if_8_begin:
+lw $5, 0($30)
+li $6, 4
+bne $5, $6, if_8_end
+li $7, 0
+sw $7, 0($29)
+li $8, 1
+sw $8, 4($29)
+while_4_begin:
+lw $5, 4($29)
+li $6, 1073741824
+bge $5, $6, while_4_end
+if_9_begin:
+lw $5, 4($30)
+lw $6, 4($29)
+div $7, $5, $6
+sw $7, 120($29)
+div $8, $5, $6
+sw $8, 132($29)
+div $9, $8, 2
+sw $9, 128($29)
+sll $9, $9, 1
+sw $9, 128($29)
+subu $10, $7, $9
+sw $10, 124($29)
+li $11, 1
+bne $10, $11, if_9_else
+if_10_begin:
+lw $5, 8($30)
+lw $6, 4($29)
+div $7, $5, $6
+sw $7, 136($29)
+div $8, $5, $6
+sw $8, 148($29)
+div $9, $8, 2
+sw $9, 144($29)
+sll $9, $9, 1
+sw $9, 144($29)
+subu $10, $7, $9
+sw $10, 140($29)
+li $11, 1
+bne $10, $11, if_10_else
+lw $12, 0($29)
+sll $13, $12, 1
+sw $13, 152($29)
+addiu $12, $13, 1
+sw $12, 0($29)
+j if_10_end
+if_10_else:
+lw $5, 0($29)
+sll $5, $5, 1
+sw $5, 0($29)
+if_10_end:
+j if_9_end
+if_9_else:
+lw $5, 0($29)
+sll $5, $5, 1
+sw $5, 0($29)
+if_9_end:
+lw $5, 4($29)
+sll $5, $5, 1
+sw $5, 4($29)
+j while_4_begin
+while_4_end:
+lw $5, 0($29)
+move $2, $5
+j func_reduce_end
+if_8_end:
+move $2, $0
+j func_reduce_end
+
+func_reduce_end:
+addiu $29, $29, 172
+lw $31, 0($29)
+lw $16, 4($29)
+lw $15, 8($29)
+lw $14, 12($29)
+lw $13, 16($29)
+lw $12, 20($29)
+lw $11, 24($29)
+lw $10, 28($29)
+lw $9, 32($29)
+lw $8, 36($29)
+lw $7, 40($29)
+lw $6, 44($29)
+lw $5, 48($29)
+addiu $29, $29, 52
+jr $ra
+
+
+func_getvalue_begin:
+sw $5, -4($29)
+sw $6, -8($29)
+sw $7, -12($29)
+sw $8, -16($29)
+sw $9, -20($29)
+sw $10, -24($29)
+sw $11, -28($29)
+sw $31, -32($29)
+addiu $29, $29, -32
+addiu $29, $29, -12
+
+if_11_begin:
+lw $5, 8($30)
+bge $5, $0, if_11_end
+move $2, $0
+j func_getvalue_end
+if_11_end:
+if_12_begin:
+lw $5, 12($30)
+bge $5, $0, if_12_end
+move $2, $0
+j func_getvalue_end
+if_12_end:
+if_13_begin:
+lw $5, 8($30)
+lw $6, 0($30)
+blt $5, $6, if_13_end
+move $2, $0
+j func_getvalue_end
+if_13_end:
+if_14_begin:
+lw $5, 12($30)
+lw $6, 4($30)
+blt $5, $6, if_14_end
+move $2, $0
+j func_getvalue_end
+if_14_end:
+lw $5, 8($30)
+lw $6, 4($30)
+mul $7, $5, $6
+sw $7, 0($29)
+lw $8, 12($30)
+addu $9, $7, $8
+sw $9, 4($29)
+sll $10, $9, 2
+la $11, a($10)
+lw $11, 0($11)
+move $2, $11
+j func_getvalue_end
+
+func_getvalue_end:
+addiu $29, $29, 12
+lw $31, 0($29)
+lw $11, 4($29)
+lw $10, 8($29)
+lw $9, 12($29)
+lw $8, 16($29)
+lw $7, 20($29)
+lw $6, 24($29)
+lw $5, 28($29)
+addiu $29, $29, 32
+jr $ra
+
+
+func_convn_begin:
+sw $5, -4($29)
+sw $6, -8($29)
+sw $7, -12($29)
+sw $8, -16($29)
+sw $9, -20($29)
+sw $10, -24($29)
+sw $11, -28($29)
+sw $12, -32($29)
+sw $13, -36($29)
+sw $14, -40($29)
+sw $31, -44($29)
+addiu $29, $29, -44
+addiu $29, $29, -104
+
+li $5, 0
+sw $5, 0($29)
+li $6, 0
+sw $6, 4($29)
+li $7, 1
+sw $7, 20($29)
+li $8, 1
+sw $8, 24($29)
+li $9, 1
+sw $9, 28($29)
+li $10, 1
+sw $10, 32($29)
+while_5_begin:
+lw $5, 20($29)
+li $6, 1
+bne $5, $6, while_5_end
+li $7, 0
+sw $7, 4($29)
+while_6_begin:
+lw $5, 24($29)
+li $6, 1
+bne $5, $6, while_6_end
+li $7, 0
+sw $7, 16($29)
+lw $8, 12($30)
+div $9, $8, 2
+sw $9, 40($29)
+lw $10, 0($29)
+subu $11, $10, $9
+sw $11, 8($29)
+while_7_begin:
+lw $5, 28($29)
+li $6, 1
+bne $5, $6, while_7_end
+lw $7, 12($30)
+div $8, $7, 2
+sw $8, 48($29)
+lw $9, 4($29)
+subu $10, $9, $8
+sw $10, 12($29)
+while_8_begin:
+lw $5, 32($29)
+li $6, 1
+bne $5, $6, while_8_end
+# function diao yong begin
+# function diao yong begin
+lw $7, 12($29)
+sw $7, -4($29)
+lw $8, 8($29)
+sw $8, -8($29)
+lw $9, 8($30)
+sw $9, -12($29)
+lw $10, 4($30)
+sw $10, -16($29)
+addiu $29, $29, -16
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_getvalue_begin
+lw $30, 0($29)
+addiu $29, $29, 20
+move $11, $2
+sw $11, -4($29)
+lw $12, 16($29)
+sw $12, -8($29)
+lw $13, 0($30)
+sw $13, -12($29)
+addiu $29, $29, -12
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_reduce_begin
+lw $30, 0($29)
+addiu $29, $29, 16
+move $14, $2
+move $12, $14
+sw $12, 16($29)
+addiu $7, $7, 1
+sw $7, 12($29)
+if_15_begin:
+lw $5, 12($30)
+div $6, $5, 2
+sw $6, 68($29)
+lw $7, 4($29)
+addu $8, $7, $6
+sw $8, 64($29)
+lw $9, 12($29)
+blt $9, $8, if_15_end
+li $10, 0
+sw $10, 32($29)
+if_15_end:
+j while_8_begin
+while_8_end:
+li $5, 1
+sw $5, 32($29)
+lw $6, 8($29)
+addiu $6, $6, 1
+sw $6, 8($29)
+if_16_begin:
+lw $5, 12($30)
+div $6, $5, 2
+sw $6, 80($29)
+lw $7, 0($29)
+addu $8, $7, $6
+sw $8, 76($29)
+lw $9, 8($29)
+blt $9, $8, if_16_end
+li $10, 0
+sw $10, 28($29)
+if_16_end:
+j while_7_begin
+while_7_end:
+li $5, 1
+sw $5, 28($29)
+lw $6, 0($29)
+lw $7, 8($30)
+mul $8, $6, $7
+sw $8, 84($29)
+lw $9, 4($29)
+addu $10, $8, $9
+sw $10, 88($29)
+sll $11, $10, 2
+lw $12, 16($29)
+move $13, $12
+la $4, b($11)
+sw $13, 0($4)
+addiu $9, $9, 1
+sw $9, 4($29)
+if_17_begin:
+lw $5, 4($29)
+lw $6, 8($30)
+blt $5, $6, if_17_end
+li $7, 0
+sw $7, 24($29)
+if_17_end:
+j while_6_begin
+while_6_end:
+li $5, 1
+sw $5, 24($29)
+lw $6, 0($29)
+addiu $6, $6, 1
+sw $6, 0($29)
+if_18_begin:
+lw $5, 0($29)
+lw $6, 4($30)
+blt $5, $6, if_18_end
+li $7, 0
+sw $7, 20($29)
+if_18_end:
+j while_5_begin
+while_5_end:
+move $2, $0
+j func_convn_end
+
+func_convn_end:
+addiu $29, $29, 104
+lw $31, 0($29)
+lw $14, 4($29)
+lw $13, 8($29)
+lw $12, 12($29)
+lw $11, 16($29)
+lw $10, 20($29)
+lw $9, 24($29)
+lw $8, 28($29)
+lw $7, 32($29)
+lw $6, 36($29)
+lw $5, 40($29)
+addiu $29, $29, 44
+jr $ra
+
+
+func_mymemmove_begin:
+sw $5, -4($29)
+sw $6, -8($29)
+sw $7, -12($29)
+sw $8, -16($29)
+sw $9, -20($29)
+sw $10, -24($29)
+sw $31, -28($29)
+addiu $29, $29, -28
+addiu $29, $29, -16
+
+li $5, 0
+sw $5, 0($29)
+while_9_begin:
+lw $5, 0($29)
+lw $6, 0($30)
+bge $5, $6, while_9_end
+sll $7, $5, 2
+sll $8, $5, 2
+la $9, b($8)
+lw $9, 0($9)
+move $10, $9
+la $4, a($7)
+sw $10, 0($4)
+addiu $5, $5, 1
+sw $5, 0($29)
+j while_9_begin
+while_9_end:
+
+func_mymemmove_end:
+addiu $29, $29, 16
+lw $31, 0($29)
+lw $10, 4($29)
+lw $9, 8($29)
+lw $8, 12($29)
+lw $7, 16($29)
+lw $6, 20($29)
+lw $5, 24($29)
+addiu $29, $29, 28
+jr $ra
+
+
 func_main_begin:
 addiu $29, $29, -4
 sw $31, 0($29)
-addiu $29, $29, -8
+addiu $29, $29, -100
 
-li $5, 5
-sw $5, 0($29)
-li $6, 102
-sw $6, 4($29)
-la $4, _str_1
-li $v0, 4
-syscall
-li $4, 10
-li $v0, 11
-syscall
-if_0_begin:
-li $7, 2
-li $8, 1
-ble $7, $8, if_0_end
-la $4, _str_2
-li $v0, 4
-syscall
-li $4, 10
-li $v0, 11
-syscall
-if_0_end:
-if_1_begin:
-li $9, 2
-li $10, 1
-beq $9, $10, if_1_end
-la $4, _str_3
-li $v0, 4
-syscall
-li $4, 10
-li $v0, 11
-syscall
-if_1_end:
+li $5, 0
+sw $5, 24($29)
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $6, $2
+move $7, $6
+sw $7, 0($29)
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $8, $2
+move $9, $8
+sw $9, 4($29)
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $10, $2
+move $11, $10
+sw $11, 8($29)
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $12, $2
+move $13, $12
+sw $13, 16($29)
+while_10_begin:
+lw $5, 24($29)
+lw $6, 16($29)
+bge $5, $6, while_10_end
+sll $7, $5, 2
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $8, $2
+move $9, $8
+la $4, a($7)
+sw $9, 0($4)
+addiu $5, $5, 1
+sw $5, 24($29)
+j while_10_begin
+while_10_end:
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $5, $2
+move $6, $5
+sw $6, 12($29)
+li $7, 0
+sw $7, 24($29)
+while_11_begin:
+lw $5, 24($29)
+lw $6, 12($29)
+bge $5, $6, while_11_end
+sll $7, $5, 2
+# function diao yong begin
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myscanf_begin
+lw $30, 0($29)
+addiu $29, $29, 4
+move $8, $2
+move $9, $8
+la $4, kernelid($7)
+sw $9, 0($4)
+addiu $5, $5, 1
+sw $5, 24($29)
+j while_11_begin
+while_11_end:
+li $5, 0
+sw $5, 24($29)
+while_12_begin:
+lw $5, 24($29)
+lw $6, 12($29)
+bge $5, $6, while_12_end
+# function diao yong begin
+lw $7, 0($29)
+sw $7, -4($29)
+lw $8, 8($29)
+sw $8, -8($29)
+lw $9, 4($29)
+sw $9, -12($29)
+sll $10, $5, 2
+la $11, kernelid($10)
+lw $11, 0($11)
+sw $11, -16($29)
+addiu $29, $29, -16
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_convn_begin
+lw $30, 0($29)
+addiu $29, $29, 20
+move $12, $2
+sw $12, 76($29)
+# function diao yong begin
+mul $13, $9, $8
+sw $13, 80($29)
+sw $13, -4($29)
+addiu $29, $29, -4
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_mymemmove_begin
+lw $30, 0($29)
+addiu $29, $29, 8
+addiu $5, $5, 1
+sw $5, 24($29)
+j while_12_begin
+while_12_end:
+li $5, 0
+sw $5, 24($29)
+while_13_begin:
+lw $5, 4($29)
+lw $6, 8($29)
+mul $7, $5, $6
+sw $7, 88($29)
+lw $8, 24($29)
+bge $8, $7, while_13_end
+# function diao yong begin
+sll $9, $8, 2
+la $10, a($9)
+lw $10, 0($10)
+sw $10, -4($29)
+addiu $29, $29, -4
+sw $30, -4($29)
+move $30, $29
+addiu $29, $29, -4
+jal func_myprintf_begin
+lw $30, 0($29)
+addiu $29, $29, 8
+addiu $8, $8, 1
+sw $8, 24($29)
+j while_13_begin
+while_13_end:
+j func_main_end
 
 func_main_end:
-addiu $29, $29, 8
+addiu $29, $29, 100
 lw $31, 0($29)
 jr $ra
 

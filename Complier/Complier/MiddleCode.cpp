@@ -161,7 +161,7 @@ void MiddleFunction::read_yu_ju(vector<Sentence> sent, StringTable& strings)
 				{
 					Arg* chang_shu = new Arg(ArgType::INT, cases[i].get_case_num());
 					Arg* label = new Arg(ArgType::IDENTIFY, switch_label + "_" + std::to_string(i));
-					MiddleSentence beq(Operation::BEQI, compare, chang_shu, label);
+					MiddleSentence beq(Operation::BEQI, new Arg(compare), chang_shu, label);
 					m_sentences.push_back(beq);
 				}
 				//
@@ -515,6 +515,7 @@ void MiddleFunction::read_in_sentences(SentenceFuHe sent, StringTable& strings)
 		m_sentences.insert(m_sentences.end(), m.begin(), m.end());
 	}
 	read_yu_ju(sent.get_sentence(), strings);
+	//OUTPUT
 	/*
 	printf("\nFunc_%s:\n", this->name_in_low.c_str());
 	unsigned int i;
@@ -598,6 +599,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 			case Operation::SUBI:
 			case Operation::MULI:
 			case Operation::DIVI:
+			case Operation::NEG:
 			{
 				if (i + 1 < old.size() && old[i + 1].get_operation() == Operation::ASSIGN)
 				{
@@ -648,7 +650,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 			if (arg_to_val.count(*(ar2->get_offset())) > 0)
 			{
 				Arg* o = new Arg(ArgType::INT, arg_to_val[*(ar2->get_offset())]);
-				ar1->set_offset(o);
+				ar2->set_offset(o);
 				this_sent.get_arg2()->set_offset(o);
 			}
 		}
@@ -658,7 +660,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 			if (arg_to_val.count(*(out->get_offset())) > 0)
 			{
 				Arg* o = new Arg(ArgType::INT, arg_to_val[*(out->get_offset())]);
-				ar1->set_offset(o);
+				out->set_offset(o);
 				this_sent.get_arg_out()->set_offset(o);
 			}
 		}
@@ -716,7 +718,6 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
 				{
-					arg_to_val.erase(*out);
 					int t;
 					if (ar2->is_static())
 						t = ar2->get_value();
@@ -732,10 +733,10 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 						MiddleSentence change(Operation::ADDI, ar1, new Arg(ArgType::INT, t), out);
 						opted.push_back(change);
 					}
+					arg_to_val.erase(*out);
 				}
 				else if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
 				{
-					arg_to_val.erase(*out);
 					int t;
 					if (ar1->is_static())
 						t = ar1->get_value();
@@ -748,9 +749,10 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 					}
 					else
 					{
-						MiddleSentence change(Operation::ADDI, ar1, new Arg(ArgType::INT, t), out);
+						MiddleSentence change(Operation::ADDI, ar2, new Arg(ArgType::INT, t), out);
 						opted.push_back(change);
 					}
+					arg_to_val.erase(*out);
 				}
 				else
 				{
@@ -848,7 +850,6 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
 				{
-					arg_to_val.erase(*out);
 					int t;
 					if (ar2->is_static())
 						t = ar2->get_value();
@@ -864,6 +865,26 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 						MiddleSentence change(Operation::SUBI, ar1, new Arg(ArgType::INT, t), out);
 						opted.push_back(change);
 					}
+					arg_to_val.erase(*out);
+				}
+				else if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
+				{
+					int t;
+					if (ar1->is_static())
+						t = ar1->get_value();
+					else
+						t = arg_to_val[*ar1];
+					if (t == 0)
+					{
+						MiddleSentence change(Operation::NEG, ar2, NULL, out);
+						opted.push_back(change);
+					}
+					else
+					{
+						MiddleSentence change(Operation::SUB, new Arg(ArgType::INT, t), ar2, out);
+						opted.push_back(change);
+					}
+					arg_to_val.erase(*out);
 				}
 				else
 				{
@@ -961,65 +982,114 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
 				{
-					arg_to_val.erase(*out);
 					int t;
 					if (ar2->is_static())
 						t = ar2->get_value();
 					else
 						t = arg_to_val[*ar2];
 					int value = t;
-					t = jump_label::log2(t);
 					if (value == 0)
 					{
 						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
 						opted.push_back(change);
 					}
-					else if (t == -1)
+					else if (value > 0)
 					{
-						MiddleSentence change(Operation::MULI, ar1, new Arg(ArgType::INT, value), out);
-						opted.push_back(change);
+						t = jump_label::log2(t);
+						if (t == -1)
+						{
+							MiddleSentence change(Operation::MULI, ar1, new Arg(ArgType::INT, value), out);
+							opted.push_back(change);
+						}
+						else if (t == 0)
+						{
+							MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
+							opted.push_back(change);
+						}
+						else
+						{
+							MiddleSentence change(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
+							opted.push_back(change);
+						}
 					}
-					else if (t == 0)
+					else	//value < 0
 					{
-						MiddleSentence change(Operation::ASSIGN, ar1, NULL, out);
-						opted.push_back(change);
+						t = jump_label::log2(-t);
+						if (t == -1)
+						{
+							MiddleSentence change(Operation::MULI, ar1, new Arg(ArgType::INT, value), out);
+							opted.push_back(change);
+						}
+						else if (t == 0)
+						{
+							MiddleSentence change(Operation::NEG, ar1, NULL, out);
+							opted.push_back(change);
+						}
+						else
+						{
+							MiddleSentence change(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
+							opted.push_back(change);
+							MiddleSentence neg(Operation::NEG, new Arg(out), NULL, new Arg(out));
+							opted.push_back(neg);
+						}
 					}
-					else
-					{
-						MiddleSentence change(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
-						opted.push_back(change);
-					}
+					arg_to_val.erase(*out);
 				}
 				else if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
 				{
-					arg_to_val.erase(*out);
 					int t;
 					if (ar1->is_static())
 						t = ar1->get_value();
 					else
 						t = arg_to_val[*ar1];
 					int value = t;
-					t = jump_label::log2(t);
 					if (value == 0)
 					{
 						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
 						opted.push_back(change);
 					}
-					else if (t == -1)
+					else if (value > 0)
 					{
-						MiddleSentence change(Operation::MULI, ar2, new Arg(ArgType::INT, value), out);
-						opted.push_back(change);
+						//TODO: mult under_zero or zero while cause error
+						t = jump_label::log2(t);
+						if (t == -1)
+						{
+							MiddleSentence change(Operation::MULI, ar2, new Arg(ArgType::INT, value), out);
+							opted.push_back(change);
+						}
+						else if (t == 0)
+						{
+							MiddleSentence change(Operation::ASSIGN, ar2, NULL, out);
+							opted.push_back(change);
+						}
+						else
+						{
+							MiddleSentence change(Operation::SLL, ar2, new Arg(ArgType::INT, t), out);
+							opted.push_back(change);
+						}
 					}
-					else if (t == 0)
+					else	//value < 0
 					{
-						MiddleSentence change(Operation::ASSIGN, ar2, NULL, out);
-						opted.push_back(change);
+						t = jump_label::log2(-t);
+						if (t == -1)
+						{
+							MiddleSentence change(Operation::MULI, ar2, new Arg(ArgType::INT, value), out);
+							opted.push_back(change);
+						}
+						else if (t == 0)
+						{
+							MiddleSentence change(Operation::NEG, ar2, NULL, out);
+							opted.push_back(change);
+						}
+						else
+						{
+							MiddleSentence change(Operation::SLL, ar2, new Arg(ArgType::INT, t), out);
+							opted.push_back(change);
+							MiddleSentence neg(Operation::NEG, new Arg(out), NULL, new Arg(out));
+							opted.push_back(neg);
+						}
 					}
-					else
-					{
-						MiddleSentence change(Operation::SLL, ar2, new Arg(ArgType::INT, t), out);
-						opted.push_back(change);
-					}
+					arg_to_val.erase(*out);
 				}
 				else
 				{
@@ -1060,9 +1130,8 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 					MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
 					opted.push_back(change);
 				}
-				else if (jump_label::log2(ar2->get_value()) != -1)
+				else if (ar2->get_value() > 0 && jump_label::log2(ar2->get_value()) != -1)
 				{
-					arg_to_val.erase(*out);
 					int t = jump_label::log2(ar2->get_value());
 					if (t == 0)
 					{
@@ -1074,6 +1143,24 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 						MiddleSentence changed(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
 						opted.push_back(changed);
 					}
+					arg_to_val.erase(*out);
+				}
+				else if (ar2->get_value() < 0 && jump_label::log2(-ar2->get_value()) != -1)
+				{	
+					int t = jump_label::log2(-ar2->get_value());
+					if (t == 0)
+					{
+						MiddleSentence changed(Operation::NEG, ar1, NULL, out);
+						opted.push_back(changed);
+					}
+					else
+					{
+						MiddleSentence changed(Operation::SLL, ar1, new Arg(ArgType::INT, t), out);
+						opted.push_back(changed);
+						MiddleSentence neg(Operation::NEG, new Arg(out), NULL, new Arg(out));
+						opted.push_back(neg);
+					}
+					arg_to_val.erase(*out);
 				}
 				else
 				{
@@ -1131,7 +1218,6 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else if (ar2->is_static() || arg_to_val.count(*ar2) > 0)
 				{
-					arg_to_val.erase(*out);
 					int t;
 					if (ar2->is_static())
 						t = ar2->get_value();
@@ -1146,6 +1232,27 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 					{
 						MiddleSentence change(Operation::DIVI, ar1, new Arg(ArgType::INT, t), out);
 						opted.push_back(change);
+					}
+					arg_to_val.erase(*out);
+				}
+				else if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
+				{
+					int t;
+					if (ar1->is_static())
+						t = ar1->get_value();
+					else
+						t = arg_to_val[*ar1];
+					if (t == 0)
+					{
+						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, 0), NULL, out);
+						opted.push_back(change);
+						arg_to_val[*out] = 0;
+					}
+					else
+					{
+						MiddleSentence change(Operation::DIVI, new Arg(ArgType::INT, t), ar2, out);
+						opted.push_back(change);
+						arg_to_val.erase(*out);
 					}
 				}
 				else
@@ -1164,7 +1271,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				if (ar1->is_static())
 				{
-					int value = ar1->get_value() - ar2->get_value();
+					int value = ar1->get_value() / ar2->get_value();
 					arg_to_val[*out] = value;
 					if (!out->is_tmp)
 					{
@@ -1174,7 +1281,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else if (arg_to_val.count(*ar1) > 0)
 				{
-					int value = arg_to_val[*ar1] - ar2->get_value();
+					int value = arg_to_val[*ar1] / ar2->get_value();
 					arg_to_val[*out] = value;
 					if (!out->is_tmp)
 					{
@@ -1213,7 +1320,6 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 					opted.push_back(this_sent);
 					break;
 				}
-				arg_to_val.erase(*out);
 				if (ar1->is_static() || arg_to_val.count(*ar1) > 0)
 				{
 					int t;
@@ -1221,6 +1327,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 						t = ar1->get_value();
 					else
 						t = arg_to_val[*ar1];
+					arg_to_val.erase(*out);
 					arg_to_val[*out] = t;
 					if (!out->is_tmp)
 					{
@@ -1230,12 +1337,51 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else
 				{
+					arg_to_val.erase(*out);
+					opted.push_back(this_sent);
+				}
+				break;
+			}
+			case Operation::NEG:
+			{
+				if (ar1->is_static())
+				{
+					int value = -ar1->get_value();
+					if (out != NULL && !out->is_tmp)
+					{
+						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(change);
+					}
+					if (out != NULL)
+						arg_to_val[*out] = value;
+				}
+				else if (ar1 != NULL && arg_to_val.count(*ar1) > 0)
+				{
+					int value = -arg_to_val[*ar1];
+					if (out != NULL && !out->is_tmp)
+					{
+						MiddleSentence change(Operation::INIT, new Arg(ArgType::INT, value), NULL, out);
+						opted.push_back(change);
+					}
+					if (out != NULL)
+						arg_to_val[*out] = value;
+				}
+				else
+				{
+					if (out != NULL)
+						arg_to_val.erase(*out);
 					opted.push_back(this_sent);
 				}
 				break;
 			}
 			default:
 			{
+				if (ar1 != NULL && arg_to_val.count(*ar1) > 0)
+					this_sent.set_arg1(new Arg(ArgType::INT, arg_to_val[*ar1]));
+				if (ar2 != NULL && arg_to_val.count(*ar2) > 0)
+					this_sent.set_arg2(new Arg(ArgType::INT, arg_to_val[*ar2]));
+				if (out != NULL)
+					arg_to_val.erase(*out);
 				opted.push_back(this_sent);
 				break;
 			}
@@ -1412,7 +1558,7 @@ bool jump_label::starts_With(const string& src, const string& target)
 
 int jump_label::log2(int value)
 {
-	if ((value & (value - 1)) == 0)
+	if ((value & (value - 1)) != 0)
 		return -1;
 	if (value == 1)
 		return 0;

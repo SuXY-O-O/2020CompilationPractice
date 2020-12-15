@@ -9,7 +9,7 @@ const string in_file_name = "testfile.txt";
 const string out_lexer = "output_lexer.txt";
 const string out_file_name = "output.txt";
 const string error_file = "error.txt";
-const bool add_optimization = false;
+const bool add_optimization = true;
 
 int main()
 {

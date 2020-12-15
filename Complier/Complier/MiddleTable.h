@@ -68,6 +68,7 @@ public :
 			return true;
 		return false;
 	}
+	Arg(const Arg* a);
 	Arg(ArgType t, int value) : type(t), value_int(value)
 	{
 		value_char = 0;
@@ -258,9 +259,17 @@ public:
 	{
 		return arg1;
 	}
+	void set_arg1(Arg* _a1)
+	{
+		this->arg1 = _a1;
+	}
 	Arg* get_arg2()
 	{
 		return arg2;
+	}
+	void set_arg2(Arg* _a2)
+	{
+		this->arg2 = _a2;
 	}
 	Arg* get_arg_out()
 	{

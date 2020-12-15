@@ -2233,9 +2233,9 @@ vector<MiddleSentence> SentenceFuZhi::add_to_middle(
 		MiddleSentence s_mult(Operation::MULI, d1, num, out);
 		for_return.push_back(s_mult);
 		Arg* d2 = exps[1].add_to_middle(for_return, local, global, c_local, c_global);
-		MiddleSentence s_add(Operation::ADD, out, d2, out);
+		MiddleSentence s_add(Operation::ADD, new Arg(out), d2, new Arg(out));
 		for_return.push_back(s_add);
-		MiddleSentence s_mul4(Operation::MULI, out, new Arg(ArgType::INT, 4), out);
+		MiddleSentence s_mul4(Operation::MULI, new Arg(out), new Arg(ArgType::INT, 4), new Arg(out));
 		for_return.push_back(s_mul4);
 		target = new Arg(ArgType::ARRAY, items[0].get_string_in_low(), out);
 	}
@@ -2733,9 +2733,9 @@ Arg* Factor::add_to_middle(
 				MiddleSentence s_mult(Operation::MULI, d1, num, out);
 				sentences.push_back(s_mult);
 				Arg* d2 = exps[1].add_to_middle(sentences, local, global, c_local, c_global);
-				MiddleSentence s_add(Operation::ADD, out, d2, out);
+				MiddleSentence s_add(Operation::ADD, new Arg(out), d2, new Arg(out));
 				sentences.push_back(s_add);
-				MiddleSentence s_mul4(Operation::MULI, out, new Arg(ArgType::INT, 4), out);
+				MiddleSentence s_mul4(Operation::MULI, new Arg(out), new Arg(ArgType::INT, 4), new Arg(out));
 				sentences.push_back(s_mul4);
 				Arg* a = new Arg(ArgType::ARRAY, name, out);
 				return a;
@@ -2865,12 +2865,12 @@ Arg* Item::add_to_middle(
 		{
 			if (signs[i].get_type() == TypeEnum::MULT)
 			{
-				MiddleSentence s(Operation::MULI, out, fac2, out);
+				MiddleSentence s(Operation::MULI, new Arg(out), fac2, new Arg(out));
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::DIVI, out, fac2, out);
+				MiddleSentence s(Operation::DIVI, new Arg(out), fac2, new Arg(out));
 				sentences.push_back(s);
 			}
 		}
@@ -2878,17 +2878,17 @@ Arg* Item::add_to_middle(
 		{
 			if (signs[i].get_type() == TypeEnum::MULT)
 			{
-				MiddleSentence s(Operation::MULT, out, fac2, out);
+				MiddleSentence s(Operation::MULT, new Arg(out), fac2, new Arg(out));
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::DIV, out, fac2, out);
+				MiddleSentence s(Operation::DIV, new Arg(out), fac2, new Arg(out));
 				sentences.push_back(s);
 			}
 		}
 	}
-	return out;
+	return new Arg(out);
 }
 
 int Expression::read_in(Lexer& lexer)
@@ -3045,12 +3045,12 @@ Arg* Expression::add_to_middle(
 		{
 			if (signs[i_sign].get_type() == TypeEnum::PLUS)
 			{
-				MiddleSentence s(Operation::ADDI, tmp, a2, tmp);
+				MiddleSentence s(Operation::ADDI, new Arg(tmp), a2, new Arg(tmp));
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::SUBI, tmp, a2, tmp);
+				MiddleSentence s(Operation::SUBI, new Arg(tmp), a2, new Arg(tmp));
 				sentences.push_back(s);
 			}
 		}
@@ -3058,17 +3058,17 @@ Arg* Expression::add_to_middle(
 		{
 			if (signs[i_sign].get_type() == TypeEnum::PLUS)
 			{
-				MiddleSentence s(Operation::ADD, tmp, a2, tmp);
+				MiddleSentence s(Operation::ADD, new Arg(tmp), a2, new Arg(tmp));
 				sentences.push_back(s);
 			}
 			else
 			{
-				MiddleSentence s(Operation::SUB, tmp, a2, tmp);
+				MiddleSentence s(Operation::SUB, new Arg(tmp), a2, new Arg(tmp));
 				sentences.push_back(s);
 			}
 		}
 	}
-	return tmp;
+	return new Arg(tmp);
 }
 
 int FunctionMain::read_in(Lexer& lexer)

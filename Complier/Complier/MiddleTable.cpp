@@ -146,7 +146,7 @@ string MiddleSentence::load_arg_to_reg
 	for_return.clear();
 	if (arg->get_type() == ArgType::INT || arg->get_type() == ArgType::CHAR)
 	{
-		if (arg->get_value() == 0)
+		if (arg->get_value() == 0 && arg->get_reg() != 4 && arg->get_reg() != 2)
 			arg->set_target_reg(0, false);
 		else
 			for_return += Mips::li(arg->get_reg(), arg->get_value());
@@ -271,6 +271,7 @@ string MiddleSentence::to_string()
 {
 	string s;
 	s.clear();
+	
 	if (out != NULL)
 		s += out->to_string();
 	else
@@ -289,7 +290,27 @@ string MiddleSentence::to_string()
 		s += "_/_";
 	s += "\n";
 	return s;
-	//TODO
+	//OUTPUT
+	/*
+	s += op_to_str(op);
+	s += "\t";
+	if (arg1 != NULL)
+		s += arg1->to_string();
+	else
+		s += "_/_";
+	s += "\t";
+	if (arg2 != NULL)
+		s += arg2->to_string();
+	else
+		s += "_/_";
+	s += "\t";
+	if (out != NULL)
+		s += out->to_string();
+	else
+		s += "_/_";
+	s += "\n";
+	return s;
+	*/
 }
 
 string MiddleSentence::to_mips
@@ -521,6 +542,21 @@ string MiddleSentence::to_mips
 		}
 	}
 	return for_return;
+}
+
+Arg::Arg(const Arg* a)
+{
+	this->type = a->type;
+	this->value_char = a->value_char;
+	this->value_int = a->value_int;
+	this->identify = a->identify;
+	this->need_stack = a->need_stack;
+	this->is_tmp = a->is_tmp;
+	this->target_reg = a->target_reg;
+	if (a->offset == NULL)
+		this->offset = NULL;
+	else
+		this->offset = new Arg(a->offset);
 }
 
 Arg::Arg(ArgType t, string id, Arg* _offset) :
