@@ -675,9 +675,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}	
 				if (ar1->is_static() && ar2->is_static())
 				{
-					//TODO : maybe need to consider overflow
-					long long int tmp = (long long int)ar1->get_value() + (long long int)ar2->get_value();
-					int value = (int)(tmp & 0xffffffff);
+					int value = ar1->get_value() + ar2->get_value();
 					arg_to_val[*out] = value;
 					if (!out->is_tmp)
 					{
@@ -687,8 +685,7 @@ vector<MiddleSentence> MiddleFunction::optimize_immediate_block(vector<MiddleSen
 				}
 				else if (ar1->is_static() && arg_to_val.count(*ar2) > 0)
 				{
-					long long int tmp = (long long int)ar1->get_value() + (long long int)arg_to_val[*ar2];
-					int value = (int)(tmp & 0xffffffff);
+					int value = ar1->get_value() + arg_to_val[*ar2];
 					arg_to_val[*out] = value;
 					if (!out->is_tmp)
 					{

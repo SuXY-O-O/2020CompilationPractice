@@ -1,4 +1,11 @@
-﻿  MiddleCode.cpp
+﻿  Error.cpp
+  Lexer.cpp
+  MiddleCode.cpp
   MiddleTable.cpp
+  Mips.cpp
+  Tables.cpp
+  WordInfo.cpp
+  main.cpp
+  Grammar.cpp
   正在生成代码...
-  Complier.vcxproj -> C:\Users\Administrator\Desktop\编译\2020CompilationPractice\Complier\Debug\Complier.exe
+  Complier.vcxproj -> C:\Users\Su199\Desktop\2020秋\编译技术\2020CompilationPractice\Complier\Debug\Complier.exe
